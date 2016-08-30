@@ -76,10 +76,6 @@ modifyPom {
                 url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
             }
         }
-
-        project.optionalDeps.each { dep ->
-            dependencies.find { it.artifactId == dep.name }.optional = true
-        }
     }
 }
 
