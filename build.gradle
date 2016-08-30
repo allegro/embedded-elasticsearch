@@ -1,6 +1,18 @@
+buildscript {
+    repositories { mavenCentral() }
+    dependencies {
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
+    }
+}
+
+plugins {
+    id 'com.bmuschko.nexus' version '2.3.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.4.0'
+}
+
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+apply plugin: 'io.codearte.nexus-staging'
 
 repositories {
     mavenCentral()
@@ -8,8 +20,13 @@ repositories {
 
 sourceCompatibility = 1.8
 
-project.group = 'pl.allegro.tech.search'
-project.version = '1.0.0'
+scmVersion {
+    tag { prefix = project.name }
+    versionCreator 'versionWithBranch'
+}
+
+project.version = scmVersion.version
+project.group = 'pl.allegro.tech'
 
 dependencies {
     compile group: 'org.elasticsearch', name: 'elasticsearch', version: '2.2.0'
@@ -34,17 +51,35 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.14.1'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+nexusStaging {
+    packageGroup = 'pl.allegro'
+    numberOfRetries = 15
+    delayBetweenRetriesInMillis = 5000
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
+modifyPom {
+    project {
+        name 'embedded-elasticsearch'
+        description 'Tool that ease up creation of integration tests with Elasticsearch'
+        url 'https://github.com/allegro/embedded-elasticsearch'
+        inceptionYear '2016'
+
+        scm {
+            url 'https://github.com/allegro/embedded-elasticsearch'
+            connection 'scm:git@github.com:allegro/embedded-elasticsearch.git'
+            developerConnection 'scm:git@github.com:allegro/embedded-elasticsearch.git'
+        }
+
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+
+        project.optionalDeps.each { dep ->
+            dependencies.find { it.artifactId == dep.name }.optional = true
+        }
+    }
 }
 
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
