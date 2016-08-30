@@ -12,7 +12,6 @@ plugins {
 
 apply plugin: 'java'
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
 apply plugin: 'io.codearte.nexus-staging'
 
 repositories {
@@ -84,10 +83,3 @@ modifyPom {
     }
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}
