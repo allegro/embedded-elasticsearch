@@ -1,0 +1,17 @@
+{
+  "paper_book": {
+    "properties": {
+      "author": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "title": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "description": {
+        "type": "string"
+      }
+    }
+  }
+}
