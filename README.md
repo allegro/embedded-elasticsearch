@@ -72,6 +72,26 @@ Available `IndexSettings.Builder` options
 ## Example
 If you want to see example, look at this spec: `pl.allegro.tech.search.embeddedelasticsearch.EmbeddedElasticSpec`
 
+## Dependency
+To start using embedded-elasticsearch in your project add it as a test dependency:
+
+Gradle:
+
+```
+testCompile 'pl.allegro.tech:embedded-elasticsearch:1.0.0'
+```
+
+Maven:
+
+```
+<dependency>
+    <groupId>pl.allegro.tech</groupId>
+    <artifactId>embedded-elasticsearch</artifactId>
+    <version>1.0.0</version>
+    <scope>testCompile</scope>
+</dependency>
+```
+
 ## License
 
 *embedded-elasticsearch* is published under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
