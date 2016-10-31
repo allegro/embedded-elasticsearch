@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.apache.commons.io.FileUtils.getFile;
@@ -22,7 +23,8 @@ class ElasticSearchInstaller {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchInstaller.class);
     private static final String ELS_PACKAGE_PREFIX = "elasticsearch-";
-    private static final Set<String> ELS_EXECUTABLE_FILES = ImmutableSet.of("elasticsearch", "elasticsearch.in.sh");
+    private static final Set<String> ELS_EXECUTABLE_FILES = ImmutableSet.of("elasticsearch", "elasticsearch.in.sh", "elasticsearch-plugin");
+    private static final int INSTALL_PLUGIN_TIMEOUT_SEC = 30;
 
     private final File baseDirectory = new File(System.getProperty("java.io.tmpdir"), "elasticsearch-test-utils");
     private final InstallationDescription installationDescription;
@@ -46,8 +48,8 @@ class ElasticSearchInstaller {
     void install() throws IOException {
         prepareDirectory();
         installElastic();
-        installPlugins();
         applyElasticPermissionRights();
+        installPlugins();
     }
 
     private void prepareDirectory() throws IOException {
@@ -60,11 +62,21 @@ class ElasticSearchInstaller {
     }
 
     private void installPlugins() throws IOException {
-        String prefix = ELS_PACKAGE_PREFIX + installationDescription.getVersion() + File.separator + "plugins" + File.separator;
-
         for (InstallationDescription.Plugin plugin : installationDescription.getPlugins()) {
-            Path downloadedTo = download(plugin.getUrl());
-            install(plugin.getName(), prefix + plugin.getName(), downloadedTo);
+            String installPluginCmd = elasticInstallationDirectory().getAbsolutePath() + "/bin/elasticsearch-plugin";
+            logger.info("Installing plugin: " + plugin.getPlugin());
+            Process installPluginProcess = Runtime.getRuntime().exec(installPluginCmd + " install " + plugin.getPlugin());
+            boolean success = false;
+            try {
+                success = installPluginProcess.waitFor(INSTALL_PLUGIN_TIMEOUT_SEC, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+            }
+
+            if (!success) {
+                logger.error("Error installing plugin: " + plugin.getPlugin());
+                return;
+            }
+            logger.info("Plugin: " + plugin.getPlugin() + " installed");
         }
     }
 
@@ -84,7 +96,7 @@ class ElasticSearchInstaller {
         Path destination = new File(baseDirectory, relativePath).toPath();
         logger.info("Installing " + what + " into " + destination + "...");
         try {
-            ZipFile zipFile = new ZipFile(downloadedFile.toString());
+            ZipFile zipFile = new ZipFile(downloadedFile.toFile());
             zipFile.extractAll(destination.toString());
             logger.info("Done");
         } catch (ZipException e) {

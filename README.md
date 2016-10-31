@@ -11,7 +11,7 @@ All you need to do to use this tool is create `EmbeddedElastic` instance. To do 
 
 ```
 final embeddedElastic = EmbeddedElastic.builder()
-        .withElasticVersion("2.2.0")
+        .withElasticVersion("5.0.0")
         .withPortNumber(9300)
         .withClusterName("my_cluster")
         .withIndex("cars", IndexSettings.builder()
@@ -44,7 +44,7 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withClusterName(String clusterName)` | cluster name for created Elasticsearch instance |
 | `withMapping(InputStream mapping)`, `withMapping(String mapping)` | JSON with mapping of your index |
 | `withSettings(InputStream settings)`, `withSettings(String settings)` | JSON with settings of your index |
-| `withPlugin(String name, URL urlToDownload)` | plugin that should be installed into Elasticsearch; use multiple times for multiple plugins |
+| `withPlugin(String plugin)` | plugin that should be installed into Elasticsearch (name or url); use multiple times for multiple plugins |
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
 
 Available `IndexSettings.Builder` options

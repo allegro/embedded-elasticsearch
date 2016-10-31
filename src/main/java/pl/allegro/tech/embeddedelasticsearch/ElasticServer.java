@@ -25,7 +25,7 @@ class ElasticServer {
     private boolean started;
     private final Object startedLock = new Object();
 
-    private static final int ELS_START_TIMEOUT_IN_MS = 15_000;
+    private static final int ELS_START_TIMEOUT_IN_MS = 20_000;
 
     private Process elastic;
     private int boundPort = -1;
@@ -96,7 +96,7 @@ class ElasticServer {
     }
     
     private List<String> elasticStartCommand() {
-        return asList(elasticExecutable(), "--transport.tcp.port=" + instanceDescription.getPort(), "--cluster.name=" + instanceDescription.getClusterName());
+        return asList(elasticExecutable(), "-Etransport.tcp.port=" + instanceDescription.getPort(), "-Ecluster.name=" + instanceDescription.getClusterName());
     }
 
     private String elasticExecutable() {
@@ -125,7 +125,7 @@ class ElasticServer {
         }
         if (line.contains("] started")) {
             signalElasticStarted();
-        } else if (line.contains("[transport") && line.contains("bound_addresses")) {
+        } else if (line.contains("TransportService") && line.contains("bound_addresses")) {
             tryExtractTransportPort(line);
         } else if (line.contains(", pid[")) {
             tryExtractPid(line);
