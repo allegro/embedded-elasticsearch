@@ -2,10 +2,10 @@ package pl.allegro.tech.embeddedelasticsearch;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,14 +22,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static org.elasticsearch.common.settings.Settings.settingsBuilder;
 
 public final class EmbeddedElastic {
 
     private final InstanceDescription instanceDescription;
     private final IndicesDescription indicesDescription;
     private final InstallationDescription installationDescription;
-    
+
     private ElasticServer elasticServer;
     private ElasticOps elasticOps;
 
@@ -70,16 +69,15 @@ public final class EmbeddedElastic {
 
     /**
      * Create transport client, with default settings
+     *
      * @throws UnknownHostException in case when literal 'localhost' cannot be resolved by OS
      */
     public Client createClient() throws UnknownHostException {
-        Settings settings = settingsBuilder()
+        Settings settings = Settings.builder()
                 .put("cluster.name", instanceDescription.getClusterName())
                 .build();
 
-        return TransportClient.builder()
-                .settings(settings)
-                .build()
+        return new PreBuiltTransportClient(settings)
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), instanceDescription.getPort()));
     }
 
@@ -97,6 +95,7 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index type
      * @param idJsonMap map where keys are documents ids and values are documents represented as JSON
@@ -109,9 +108,10 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index name
-     * @param json document represented as JSON
+     * @param json      document represented as JSON
      */
     public void index(String indexName, String indexType, String... json) {
         index(indexName, indexType, Arrays.asList(json));
@@ -119,9 +119,10 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index name
-     * @param json document represented as JSON
+     * @param json      document represented as JSON
      */
     public void index(String indexName, String indexType, List<CharSequence> json) {
         elasticOps.index(indexName, indexType, json.stream().map(CharSequence::toString).collect(toList()));
@@ -137,6 +138,7 @@ public final class EmbeddedElastic {
 
     /**
      * Recreates specified index (i.e. deletes and creates it again)
+     *
      * @param indexName index to recreate
      */
     public void recreateIndex(String indexName) {
@@ -153,6 +155,7 @@ public final class EmbeddedElastic {
 
     /**
      * Delete specified index
+     *
      * @param indexName index do delete
      */
     public void deleteIndex(String indexName) {
@@ -168,6 +171,7 @@ public final class EmbeddedElastic {
 
     /**
      * Create specified index. Note that you can specify only index from list of indices specified during EmbeddedElastic creation
+     *
      * @param indexName index to create
      */
     public void createIndex(String indexName) {
@@ -183,6 +187,7 @@ public final class EmbeddedElastic {
 
     /**
      * Fetch all documents from specified indices. Useful for logging and debugging
+     *
      * @return list containing documents sources represented as JSON
      */
     public List<String> fetchAllDocuments(String... indices) throws UnknownHostException {
@@ -238,10 +243,12 @@ public final class EmbeddedElastic {
         }
 
         /**
-         * Plugin that should be installed with created instance
+         * Plugin that should be installed with created instance.
+         *
+         * @param plugin - plugin name or url
          */
-        public Builder withPlugin(String name, URL urlToDownload) {
-            this.plugins.add(new InstallationDescription.Plugin(name, urlToDownload));
+        public Builder withPlugin(String plugin) {
+            this.plugins.add(new InstallationDescription.Plugin(plugin));
             return this;
         }
 
@@ -262,11 +269,11 @@ public final class EmbeddedElastic {
 
         public EmbeddedElastic build() {
             return new EmbeddedElastic(
-                    new InstanceDescription(portNumber, clusterName), 
-                    new IndicesDescription(indices), 
+                    new InstanceDescription(portNumber, clusterName),
+                    new IndicesDescription(indices),
                     new InstallationDescription(version, downloadUrl, plugins));
         }
-        
+
     }
 }
 

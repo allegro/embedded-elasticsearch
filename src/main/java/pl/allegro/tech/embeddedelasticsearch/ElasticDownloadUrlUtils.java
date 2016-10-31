@@ -11,11 +11,11 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Throwables.propagate;
 
 class ElasticDownloadUrlUtils {
-    
+
     static URL urlFromVersion(String elasticVersion) {
         assertVersionValid(elasticVersion);
         try {
-            return new URL("https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/" + elasticVersion + "/elasticsearch-" + elasticVersion + ".zip");
+            return new URL("https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-" + elasticVersion + ".zip");
         } catch (MalformedURLException e) {
             throw propagate(e);
         }

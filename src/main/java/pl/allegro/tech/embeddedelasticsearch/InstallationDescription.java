@@ -27,11 +27,11 @@ class InstallationDescription {
         this.plugins = plugins;
     }
 
-    public String getVersion() {
+    String getVersion() {
         return version;
     }
 
-    public URL getDownloadUrl() {
+    URL getDownloadUrl() {
         return downloadUrl;
     }
 
@@ -40,20 +40,14 @@ class InstallationDescription {
     }
 
     static class Plugin {
-        private final String name;
-        private final URL url;
+        private final String plugin;
 
-        Plugin(String name, URL url) {
-            this.name = name;
-            this.url = url;
+        public Plugin(String plugin) {
+            this.plugin = plugin;
         }
 
-        String getName() {
-            return name;
-        }
-
-        URL getUrl() {
-            return url;
+        public String getPlugin() {
+            return plugin;
         }
     }
 }

@@ -1,16 +1,16 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-public class EmbeddedElasticsearchStartupException extends RuntimeException {
+class EmbeddedElasticsearchStartupException extends RuntimeException {
 
-    public EmbeddedElasticsearchStartupException(String message) {
+    EmbeddedElasticsearchStartupException(String message) {
         super(message);
     }
 
-    public EmbeddedElasticsearchStartupException(Throwable cause) {
+    EmbeddedElasticsearchStartupException(Throwable cause) {
         super(cause);
     }
 
-    public EmbeddedElasticsearchStartupException(String message, Throwable cause) {
+    EmbeddedElasticsearchStartupException(String message, Throwable cause) {
         super(message, cause);
     }
 }
