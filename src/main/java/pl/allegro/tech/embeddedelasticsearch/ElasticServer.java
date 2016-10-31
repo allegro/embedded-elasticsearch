@@ -25,7 +25,7 @@ class ElasticServer {
     private boolean started;
     private final Object startedLock = new Object();
 
-    private static final int ELS_START_TIMEOUT_IN_MS = 15_000;
+    private static final int ELS_START_TIMEOUT_IN_MS = 20_000;
 
     private Process elastic;
     private int boundPort = -1;
