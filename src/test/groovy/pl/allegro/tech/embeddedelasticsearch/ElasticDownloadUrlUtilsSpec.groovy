@@ -14,8 +14,8 @@ class ElasticDownloadUrlUtilsSpec extends Specification {
 
     def "should extract properly version from normal url"() {
         given:
-            final downloadUrl = new URL("https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/2.3.4/elasticsearch-2.3.4.zip")
-            final version = "2.3.4"
+            final downloadUrl = new URL("https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.0.zip")
+            final version = "5.0.0"
         when:
             final extractedVersion = ElasticDownloadUrlUtils.versionFromUrl(downloadUrl)
         then:

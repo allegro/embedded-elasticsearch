@@ -1,17 +1,19 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
 import com.google.common.collect.ImmutableSet;
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.zip.NameMapper;
+import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.apache.commons.io.FileUtils.forceMkdir;
 import static org.apache.commons.io.FileUtils.getFile;
@@ -56,7 +58,7 @@ class ElasticSearchInstaller {
 
     private void installElastic() throws IOException {
         Path downloadedTo = download(installationDescription.getDownloadUrl());
-        install("Elasticsearch", "", downloadedTo);
+        install("Elasticsearch", "", downloadedTo, name -> name);
     }
 
     private void installPlugins() throws IOException {
@@ -64,7 +66,7 @@ class ElasticSearchInstaller {
 
         for (InstallationDescription.Plugin plugin : installationDescription.getPlugins()) {
             Path downloadedTo = download(plugin.getUrl());
-            install(plugin.getName(), prefix + plugin.getName(), downloadedTo);
+            install(plugin.getName(), prefix + plugin.getName(), downloadedTo, FilenameUtils::getName);
         }
     }
 
@@ -80,14 +82,13 @@ class ElasticSearchInstaller {
         return target.toPath();
     }
 
-    private void install(String what, String relativePath, Path downloadedFile) throws IOException {
+    private void install(String what, String relativePath, Path downloadedFile, NameMapper nameMapper) throws IOException {
         Path destination = new File(baseDirectory, relativePath).toPath();
         logger.info("Installing " + what + " into " + destination + "...");
         try {
-            ZipFile zipFile = new ZipFile(downloadedFile.toString());
-            zipFile.extractAll(destination.toString());
+            ZipUtil.unpack(downloadedFile.toFile(), destination.toFile(), nameMapper);
             logger.info("Done");
-        } catch (ZipException e) {
+        } catch (RuntimeException e) {
             logger.info("Failure : " + e);
             throw new EmbeddedElasticsearchStartupException(e);
         }

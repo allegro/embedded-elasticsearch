@@ -3,7 +3,7 @@
 ![build status](https://api.travis-ci.org/allegro/embedded-elasticsearch.svg)
 ![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.allegro.tech/embedded-elasticsearch/badge.svg)
 
-Small utility for creating integration tests that uses Elasticsearch. Instead of using `Node` it downloads elastic search in specified version and starts it in seprate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 2.x version of Elasticsearch.
+Small utility for creating integration tests that uses Elasticsearch. Instead of using `Node` it downloads elastic search in specified version and starts it in seprate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 5.x version of Elasticsearch.
 
 ## Introduction
 
@@ -11,7 +11,7 @@ All you need to do to use this tool is create `EmbeddedElastic` instance. To do 
 
 ```
 final embeddedElastic = EmbeddedElastic.builder()
-        .withElasticVersion("2.2.0")
+        .withElasticVersion("5.0.0")
         .withPortNumber(9300)
         .withClusterName("my_cluster")
         .withIndex("cars", IndexSettings.builder()
