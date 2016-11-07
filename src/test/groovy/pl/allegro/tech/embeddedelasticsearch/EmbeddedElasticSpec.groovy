@@ -6,26 +6,15 @@ import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
 import org.elasticsearch.index.query.QueryBuilders
+import org.elasticsearch.transport.client.PreBuiltTransportClient
 import org.skyscreamer.jsonassert.JSONAssert
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static ElasticInfo.DECOMPOUND_PLUGIN
-import static ElasticInfo.DECOMPOUND_PLUGIN_DOWNLOAD_URL
 import static ElasticInfo.ELASTIC_VERSION
-import static SampleIndices.AMERICAN_PSYCHO
-import static SampleIndices.AUDIO_BOOK_INDEX_TYPE
-import static SampleIndices.BOOKS_INDEX
-import static SampleIndices.BOOKS_INDEX_NAME
-import static SampleIndices.CARS_INDEX
-import static SampleIndices.CARS_INDEX_NAME
-import static SampleIndices.CAR_INDEX_TYPE
-import static SampleIndices.CLUSTER_NAME
-import static SampleIndices.FIAT_126p
-import static SampleIndices.PAPER_BOOK_INDEX_TYPE
-import static SampleIndices.PORT
-import static SampleIndices.SHINING
-import static SampleIndices.toJson
+import static SampleIndices.*
+import static pl.allegro.tech.embeddedelasticsearch.ElasticInfo.ANALYSIS_ICU_PLUGIN
+import static pl.allegro.tech.embeddedelasticsearch.ElasticInfo.ANALYSIS_ICU_PLUGIN_DOWNLOAD_URL
 
 class EmbeddedElasticSpec extends Specification {
     
@@ -35,7 +24,7 @@ class EmbeddedElasticSpec extends Specification {
     def setupSpec() {
         embeddedElastic = EmbeddedElastic.builder()
                 .withElasticVersion(ELASTIC_VERSION)
-                .withPlugin(DECOMPOUND_PLUGIN, DECOMPOUND_PLUGIN_DOWNLOAD_URL)
+                .withPlugin(ANALYSIS_ICU_PLUGIN, ANALYSIS_ICU_PLUGIN_DOWNLOAD_URL)
                 .withPortNumber(PORT)
                 .withClusterName(CLUSTER_NAME)
                 .withIndex(CARS_INDEX_NAME, CARS_INDEX)
@@ -164,8 +153,8 @@ class EmbeddedElasticSpec extends Specification {
     }
     
     Client createClient() {
-        Settings settings = Settings.settingsBuilder().put("cluster.name", SampleIndices.CLUSTER_NAME).build();
-        TransportClient client = TransportClient.builder().settings(settings).build();
+        Settings settings = Settings.builder().put("cluster.name", SampleIndices.CLUSTER_NAME).build();
+        TransportClient client = new PreBuiltTransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(SampleIndices.HOST), SampleIndices.PORT));
         return client;
     }

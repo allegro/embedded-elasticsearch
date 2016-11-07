@@ -1,11 +1,6 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.search.SearchHit;
+import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +16,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
-import static org.elasticsearch.common.settings.Settings.settingsBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 public final class EmbeddedElastic {
 
@@ -73,13 +72,11 @@ public final class EmbeddedElastic {
      * @throws UnknownHostException in case when literal 'localhost' cannot be resolved by OS
      */
     public Client createClient() throws UnknownHostException {
-        Settings settings = settingsBuilder()
+        Settings settings = Settings.builder()
                 .put("cluster.name", instanceDescription.getClusterName())
                 .build();
 
-        return TransportClient.builder()
-                .settings(settings)
-                .build()
+        return new PreBuiltTransportClient(settings)
                 .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), instanceDescription.getPort()));
     }
 
