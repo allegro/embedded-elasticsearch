@@ -3,7 +3,7 @@
 ![build status](https://api.travis-ci.org/allegro/embedded-elasticsearch.svg)
 ![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.allegro.tech/embedded-elasticsearch/badge.svg)
 
-Small utility for creating integration tests that uses Elasticsearch. Instead of using `Node` it downloads elastic search in specified version and starts it in seprate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 2.x version of Elasticsearch.
+Small utility for creating integration tests that uses Elasticsearch. Instead of using `Node` it downloads elastic search in specified version and starts it in seprate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 2.x and 5.x versions of Elasticsearch.
 
 ## Introduction
 
@@ -11,9 +11,10 @@ All you need to do to use this tool is create `EmbeddedElastic` instance. To do 
 
 ```
 final embeddedElastic = EmbeddedElastic.builder()
-        .withElasticVersion("2.2.0")
-        .withPortNumber(9300)
-        .withClusterName("my_cluster")
+        .withElasticVersion("5.0.0")
+        .withSetting(PopularProperties.TRANSPORT_TCP_PORT, 9350)
+        .withSetting(PopularProperties.CLUSTER_NAME, "my_cluster")
+        .withPlugin("analysis-stempel")
         .withIndex("cars", IndexSettings.builder()
             .withType("car", getSystemResourceAsStream("car-mapping.json"))
             .build())
@@ -40,11 +41,8 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | ------------- | ------------- |
 | `withElasticVersion(String version)` | version of Elasticsearch; based on that version download url to official Elasticsearch repository will be created |
 | `withDownloadUrl(URL downloadUrl)` | if you prefer to download Elasticsearch from different location than official repositories you can do that using this method |
-| `withPortNumber(int portNumber)` | port number on which Elasticsearch will be started |
-| `withClusterName(String clusterName)` | cluster name for created Elasticsearch instance |
-| `withMapping(InputStream mapping)`, `withMapping(String mapping)` | JSON with mapping of your index |
-| `withSettings(InputStream settings)`, `withSettings(String settings)` | JSON with settings of your index |
-| `withPlugin(String name, URL urlToDownload)` | plugin that should be installed into Elasticsearch; use multiple times for multiple plugins |
+| `withSetting(String key, Object value)` | setting name and value as in elasticsearch.yml file |
+| `withPlugin(String name, String expression)` | plugin that should be installed into Elasticsearch; treat expression as argument to `./elasticsearch-plugin install` command; use multiple times for multiple plugins |
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
 
 Available `IndexSettings.Builder` options
@@ -67,7 +65,6 @@ Available `IndexSettings.Builder` options
 | `createIndex(String indexName)`, `createIndices()` | creates index with name specified during EmbeddedElastic creation; note that this index is created during EmbeddedElastic startup, you will need this method only if you deleted your index using `deleteIndex` method |  
 | `recreateIndex(String indexName)`, `recreateIndices()` | combination of `deleteIndex` and `createIndex` |
 | `refreshIndices()` | refresh index; useful when you make changes in different thread, and want to check results instantly in tests |
-| `createClient()` | create transport client withc default settings |
 
 ## Example
 If you want to see example, look at this spec: `pl.allegro.tech.search.embeddedelasticsearch.EmbeddedElasticSpec`
@@ -87,7 +84,7 @@ Maven:
 <dependency>
     <groupId>pl.allegro.tech</groupId>
     <artifactId>embedded-elasticsearch</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <scope>testCompile</scope>
 </dependency>
 ```
