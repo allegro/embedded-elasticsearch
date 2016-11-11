@@ -26,7 +26,7 @@ import static org.elasticsearch.common.settings.Settings.settingsBuilder;
 
 public final class EmbeddedElastic {
 
-    private final InstanceDescription instanceDescription;
+    private final InstanceSettings instanceSettings;
     private final IndicesDescription indicesDescription;
     private final InstallationDescription installationDescription;
     
@@ -37,8 +37,8 @@ public final class EmbeddedElastic {
         return new Builder();
     }
 
-    private EmbeddedElastic(InstanceDescription instanceDescription, IndicesDescription indicesDescription, InstallationDescription installationDescription) {
-        this.instanceDescription = instanceDescription;
+    private EmbeddedElastic(InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription) {
+        this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
         this.installationDescription = installationDescription;
     }
@@ -59,7 +59,7 @@ public final class EmbeddedElastic {
         elasticSearchInstaller.install();
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File dataDirectory = elasticSearchInstaller.getDataDirectory();
-        elasticServer = new ElasticServer(instanceDescription, new InstallationDirectory(executableFile, dataDirectory));
+        elasticServer = new ElasticServer(instanceSettings, new InstallationDirectory(executableFile, dataDirectory));
     }
 
     private void startElastic() throws IOException, InterruptedException {
@@ -74,13 +74,13 @@ public final class EmbeddedElastic {
      */
     public Client createClient() throws UnknownHostException {
         Settings settings = settingsBuilder()
-                .put("cluster.name", instanceDescription.getClusterName())
+                .put("cluster.name", instanceSettings.getClusterName())
                 .build();
 
         return TransportClient.builder()
                 .settings(settings)
                 .build()
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), instanceDescription.getPort()));
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), instanceSettings.getPort()));
     }
 
     private void createOps() throws UnknownHostException {
@@ -194,8 +194,7 @@ public final class EmbeddedElastic {
 
     public static final class Builder {
 
-        private int portNumber = 9300;
-        private String clusterName = "elasticsearch";
+        private Map<String, Object> settings = new HashMap<>();
         private Optional<String> version = Optional.empty();
         private List<InstallationDescription.Plugin> plugins = new ArrayList<>();
         private Optional<URL> downloadUrl = Optional.empty();
@@ -208,7 +207,7 @@ public final class EmbeddedElastic {
          * Port number on which created Elasticsearch instance will listen
          */
         public Builder withPortNumber(int portNumber) {
-            this.portNumber = portNumber;
+            this.settings.put(InstanceSettings.TRANSPORT_TCP_PORT, portNumber);
             return this;
         }
 
@@ -216,7 +215,15 @@ public final class EmbeddedElastic {
          * Cluster name that will be used by created Elasticsearch instance
          */
         public Builder withClusterName(String clusterName) {
-            this.clusterName = clusterName;
+            this.settings.put(InstanceSettings.CLUSTER_NAME, clusterName);
+            return this;
+        }
+
+        /**
+         * Node setting as in elasticsearch.yml file
+         */
+        public Builder withSetting(String name, Object value) {
+            this.settings.put(name, value);
             return this;
         }
 
@@ -262,7 +269,7 @@ public final class EmbeddedElastic {
 
         public EmbeddedElastic build() {
             return new EmbeddedElastic(
-                    new InstanceDescription(portNumber, clusterName), 
+                    new InstanceSettings(settings),
                     new IndicesDescription(indices), 
                     new InstallationDescription(version, downloadUrl, plugins));
         }
