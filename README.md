@@ -14,6 +14,7 @@ final embeddedElastic = EmbeddedElastic.builder()
         .withElasticVersion("2.2.0")
         .withPortNumber(9300)
         .withClusterName("my_cluster")
+        .withSetting("http.port", 9201)
         .withIndex("cars", IndexSettings.builder()
             .withType("car", getSystemResourceAsStream("car-mapping.json"))
             .build())
@@ -42,6 +43,7 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withDownloadUrl(URL downloadUrl)` | if you prefer to download Elasticsearch from different location than official repositories you can do that using this method |
 | `withPortNumber(int portNumber)` | port number on which Elasticsearch will be started |
 | `withClusterName(String clusterName)` | cluster name for created Elasticsearch instance |
+| `withSetting(String name, Object value` | setting name and value as in elasticsearch.yml file |
 | `withMapping(InputStream mapping)`, `withMapping(String mapping)` | JSON with mapping of your index |
 | `withSettings(InputStream settings)`, `withSettings(String settings)` | JSON with settings of your index |
 | `withPlugin(String name, URL urlToDownload)` | plugin that should be installed into Elasticsearch; use multiple times for multiple plugins |

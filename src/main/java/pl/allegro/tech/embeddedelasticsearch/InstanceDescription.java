@@ -1,19 +1,30 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-class InstanceDescription {
-    private final int port;
-    private final String clusterName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
 
-    InstanceDescription(int port, String clusterName) {
-        this.port = port;
-        this.clusterName = clusterName;
+class InstanceDescription {
+    private Map<String, Object> settings;
+
+    InstanceDescription(Map<String, Object> settings) {
+        this.settings = settings;
     }
 
     int getPort() {
-        return port;
+        return (int) this.settings.get("transport.tcp.port");
     }
 
     String getClusterName() {
-        return clusterName;
+        return (String) this.settings.get("cluster.name");
+    }
+
+    Collection<String> asParams() {
+        Collection<String> params = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : this.settings.entrySet()) {
+            params.add("--" + entry.getKey());
+            params.add(entry.getValue().toString());
+        }
+        return params;
     }
 }

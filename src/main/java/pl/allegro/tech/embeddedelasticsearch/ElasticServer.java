@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,7 +99,10 @@ class ElasticServer {
     }
     
     private List<String> elasticStartCommand() {
-        return asList(elasticExecutable(), "--transport.tcp.port=" + instanceDescription.getPort(), "--cluster.name=" + instanceDescription.getClusterName());
+        List<String> command = new ArrayList<>();
+        command.add(elasticExecutable());
+        command.addAll(instanceDescription.asParams());
+        return command;
     }
 
     private String elasticExecutable() {

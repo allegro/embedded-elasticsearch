@@ -194,21 +194,22 @@ public final class EmbeddedElastic {
 
     public static final class Builder {
 
-        private int portNumber = 9300;
-        private String clusterName = "elasticsearch";
+        private Map<String, Object> settings = new HashMap<>();
         private Optional<String> version = Optional.empty();
         private List<InstallationDescription.Plugin> plugins = new ArrayList<>();
         private Optional<URL> downloadUrl = Optional.empty();
         private Map<String, IndexSettings> indices = new HashMap<>();
 
         private Builder() {
+            this.settings.put("cluster.name", "elasticsearch");
+            this.settings.put("transport.tcp.port", 9300);
         }
 
         /**
          * Port number on which created Elasticsearch instance will listen
          */
         public Builder withPortNumber(int portNumber) {
-            this.portNumber = portNumber;
+            this.settings.put("transport.tcp.port", portNumber);
             return this;
         }
 
@@ -216,7 +217,15 @@ public final class EmbeddedElastic {
          * Cluster name that will be used by created Elasticsearch instance
          */
         public Builder withClusterName(String clusterName) {
-            this.clusterName = clusterName;
+            this.settings.put("cluster.name", clusterName);
+            return this;
+        }
+
+        /**
+         * Node setting as in elasticsearch.yml file
+         */
+        public Builder withSetting(String name, Object value) {
+            this.settings.put(name, value);
             return this;
         }
 
@@ -262,7 +271,7 @@ public final class EmbeddedElastic {
 
         public EmbeddedElastic build() {
             return new EmbeddedElastic(
-                    new InstanceDescription(portNumber, clusterName), 
+                    new InstanceDescription(settings),
                     new IndicesDescription(indices), 
                     new InstallationDescription(version, downloadUrl, plugins));
         }
