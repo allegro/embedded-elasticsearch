@@ -8,8 +8,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,7 +15,6 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Throwables.propagate;
 import static java.text.MessageFormat.format;
-import static java.util.Arrays.asList;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.apache.commons.lang3.Validate.isTrue;
 
@@ -35,11 +32,11 @@ class ElasticServer {
     private Thread ownerThread;
     private int pid = -1;
 
-    private final InstanceDescription instanceDescription;
+    private final InstanceSettings instanceSettings;
     private final InstallationDirectory installationDirectory;
 
-    ElasticServer(InstanceDescription instanceDescription, InstallationDirectory installationDirectory) {
-        this.instanceDescription = instanceDescription;
+    ElasticServer(InstanceSettings instanceSettings, InstallationDirectory installationDirectory) {
+        this.instanceSettings = instanceSettings;
         this.installationDirectory = installationDirectory;
     }
 
@@ -101,7 +98,7 @@ class ElasticServer {
     private List<String> elasticStartCommand() {
         List<String> command = new ArrayList<>();
         command.add(elasticExecutable());
-        command.addAll(instanceDescription.asParams());
+        command.addAll(instanceSettings.asCommandLineParams());
         return command;
     }
 
@@ -160,10 +157,10 @@ class ElasticServer {
     }
 
     private void verify() throws IOException {
-        if (instanceDescription.getPort() != boundPort) {
+        if (instanceSettings.getPort() != boundPort) {
             throw new EmbeddedElasticsearchStartupException(format(
                     "Embedded elasticsearch started on a different port than the search service expects it; Actual port : {0}; expected : {1}. Is another instance running?",
-                    boundPort, instanceDescription.getPort()));
+                    boundPort, instanceSettings.getPort()));
         }
     }
 

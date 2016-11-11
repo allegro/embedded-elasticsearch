@@ -26,7 +26,7 @@ import static org.elasticsearch.common.settings.Settings.settingsBuilder;
 
 public final class EmbeddedElastic {
 
-    private final InstanceDescription instanceDescription;
+    private final InstanceSettings instanceSettings;
     private final IndicesDescription indicesDescription;
     private final InstallationDescription installationDescription;
     
@@ -37,8 +37,8 @@ public final class EmbeddedElastic {
         return new Builder();
     }
 
-    private EmbeddedElastic(InstanceDescription instanceDescription, IndicesDescription indicesDescription, InstallationDescription installationDescription) {
-        this.instanceDescription = instanceDescription;
+    private EmbeddedElastic(InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription) {
+        this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
         this.installationDescription = installationDescription;
     }
@@ -59,7 +59,7 @@ public final class EmbeddedElastic {
         elasticSearchInstaller.install();
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File dataDirectory = elasticSearchInstaller.getDataDirectory();
-        elasticServer = new ElasticServer(instanceDescription, new InstallationDirectory(executableFile, dataDirectory));
+        elasticServer = new ElasticServer(instanceSettings, new InstallationDirectory(executableFile, dataDirectory));
     }
 
     private void startElastic() throws IOException, InterruptedException {
@@ -74,13 +74,13 @@ public final class EmbeddedElastic {
      */
     public Client createClient() throws UnknownHostException {
         Settings settings = settingsBuilder()
-                .put("cluster.name", instanceDescription.getClusterName())
+                .put("cluster.name", instanceSettings.getClusterName())
                 .build();
 
         return TransportClient.builder()
                 .settings(settings)
                 .build()
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), instanceDescription.getPort()));
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), instanceSettings.getPort()));
     }
 
     private void createOps() throws UnknownHostException {
@@ -201,15 +201,13 @@ public final class EmbeddedElastic {
         private Map<String, IndexSettings> indices = new HashMap<>();
 
         private Builder() {
-            this.settings.put("cluster.name", "elasticsearch");
-            this.settings.put("transport.tcp.port", 9300);
         }
 
         /**
          * Port number on which created Elasticsearch instance will listen
          */
         public Builder withPortNumber(int portNumber) {
-            this.settings.put("transport.tcp.port", portNumber);
+            this.settings.put(InstanceSettings.TRANSPORT_TCP_PORT, portNumber);
             return this;
         }
 
@@ -217,7 +215,7 @@ public final class EmbeddedElastic {
          * Cluster name that will be used by created Elasticsearch instance
          */
         public Builder withClusterName(String clusterName) {
-            this.settings.put("cluster.name", clusterName);
+            this.settings.put(InstanceSettings.CLUSTER_NAME, clusterName);
             return this;
         }
 
@@ -271,7 +269,7 @@ public final class EmbeddedElastic {
 
         public EmbeddedElastic build() {
             return new EmbeddedElastic(
-                    new InstanceDescription(settings),
+                    new InstanceSettings(settings),
                     new IndicesDescription(indices), 
                     new InstallationDescription(version, downloadUrl, plugins));
         }
