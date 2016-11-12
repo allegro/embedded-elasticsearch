@@ -1,8 +1,10 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.base.Throwables.propagate;
+import static java.text.MessageFormat.format;
+import static org.apache.commons.io.FileUtils.deleteDirectory;
+import static org.apache.commons.lang3.Validate.isTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,12 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.base.Throwables.propagate;
-import static java.text.MessageFormat.format;
-import static org.apache.commons.io.FileUtils.deleteDirectory;
-import static org.apache.commons.lang3.Validate.isTrue;
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ElasticServer {
 
@@ -59,6 +58,10 @@ class ElasticServer {
 
     boolean isStarted() {
         return started;
+    }
+
+    int getTcpPort() {
+        return boundPort;
     }
 
     private void deleteDataDirectory() {
@@ -157,10 +160,11 @@ class ElasticServer {
     }
 
     private void verify() throws IOException {
-        if (instanceSettings.getPort() != boundPort) {
+        int forcedPort = instanceSettings.getForcedPort();
+        if (forcedPort != -1 && forcedPort != boundPort) {
             throw new EmbeddedElasticsearchStartupException(format(
                     "Embedded elasticsearch started on a different port than the search service expects it; Actual port : {0}; expected : {1}. Is another instance running?",
-                    boundPort, instanceSettings.getPort()));
+                    boundPort, instanceSettings.getForcedPort()));
         }
     }
 

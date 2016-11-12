@@ -36,7 +36,7 @@ class EmbeddedElasticSpec extends Specification {
         embeddedElastic = EmbeddedElastic.builder()
                 .withElasticVersion(ELASTIC_VERSION)
                 .withPlugin(DECOMPOUND_PLUGIN, DECOMPOUND_PLUGIN_DOWNLOAD_URL)
-                .withPortNumber(PORT)
+                .withForcedPortNumber(PORT)
                 .withClusterName(CLUSTER_NAME)
                 .withIndex(CARS_INDEX_NAME, CARS_INDEX)
                 .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)

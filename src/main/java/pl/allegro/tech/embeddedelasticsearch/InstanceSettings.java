@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.math.NumberUtils;
 
 class InstanceSettings {
 
@@ -11,7 +12,7 @@ class InstanceSettings {
     public static final String CLUSTER_NAME = "cluster.name";
 
 
-    private static final int DEFAULT_TRANSPORT_TCP_PORT = 9300;
+    private static final String DEFAULT_TRANSPORT_TCP_PORT = "9300-9400";
     private static final String DEFAULT_CLUSTER_NAME = "elasticsearch";
 
 
@@ -23,8 +24,8 @@ class InstanceSettings {
         this.settings.putAll(settings);
     }
 
-    int getPort() {
-        return (int) settings.get(TRANSPORT_TCP_PORT);
+    int getForcedPort() {
+        return NumberUtils.toInt(settings.get(TRANSPORT_TCP_PORT).toString(), -1);
     }
 
     String getClusterName() {
@@ -39,4 +40,5 @@ class InstanceSettings {
         }
         return params;
     }
+
 }

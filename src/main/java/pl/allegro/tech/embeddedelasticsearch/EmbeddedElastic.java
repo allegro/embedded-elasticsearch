@@ -1,11 +1,7 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.search.SearchHit;
+import static java.util.stream.Collectors.toList;
+import static org.elasticsearch.common.settings.Settings.settingsBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,9 +16,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
-import static org.elasticsearch.common.settings.Settings.settingsBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.search.SearchHit;
 
 public final class EmbeddedElastic {
 
@@ -74,13 +73,13 @@ public final class EmbeddedElastic {
      */
     public Client createClient() throws UnknownHostException {
         Settings settings = settingsBuilder()
-                .put("cluster.name", instanceSettings.getClusterName())
+                .put(InstanceSettings.CLUSTER_NAME, instanceSettings.getClusterName())
                 .build();
 
         return TransportClient.builder()
                 .settings(settings)
                 .build()
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), instanceSettings.getPort()));
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), elasticServer.getTcpPort()));
     }
 
     private void createOps() throws UnknownHostException {
@@ -206,7 +205,7 @@ public final class EmbeddedElastic {
         /**
          * Port number on which created Elasticsearch instance will listen
          */
-        public Builder withPortNumber(int portNumber) {
+        public Builder withForcedPortNumber(int portNumber) {
             this.settings.put(InstanceSettings.TRANSPORT_TCP_PORT, portNumber);
             return this;
         }
