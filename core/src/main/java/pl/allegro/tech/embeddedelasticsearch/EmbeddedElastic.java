@@ -10,10 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.apache.http.client.methods.HttpGet;
 import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
 
 import static java.util.stream.Collectors.toList;
@@ -23,7 +22,8 @@ public final class EmbeddedElastic {
     private final InstanceSettings instanceSettings;
     private final IndicesDescription indicesDescription;
     private final InstallationDescription installationDescription;
-    
+    private final long startTimeoutInMs;
+
     private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
 
@@ -31,10 +31,11 @@ public final class EmbeddedElastic {
         return new Builder();
     }
 
-    private EmbeddedElastic(InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription) {
+    private EmbeddedElastic(InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
         this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
         this.installationDescription = installationDescription;
+        this.startTimeoutInMs = startTimeoutInMs;
     }
 
     /**
@@ -53,7 +54,7 @@ public final class EmbeddedElastic {
         elasticSearchInstaller.install();
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File installationDirectory = elasticSearchInstaller.getInstallationDirectory();
-        elasticServer = new ElasticServer(installationDirectory, executableFile);
+        elasticServer = new ElasticServer(installationDirectory, executableFile, startTimeoutInMs);
     }
 
     private void startElastic() throws IOException, InterruptedException {
@@ -174,6 +175,7 @@ public final class EmbeddedElastic {
         private Optional<URL> downloadUrl = Optional.empty();
         private Map<String, IndexSettings> indices = new HashMap<>();
         private InstanceSettings settings = new InstanceSettings();
+        private long startTimeoutInMs = 15_000;
 
         private Builder() {
         }
@@ -225,11 +227,20 @@ public final class EmbeddedElastic {
             return this;
         }
 
+        /**
+         * How long should embedded-elasticsearch wait for elasticsearch to startup. Defaults to 15 seconds
+         */
+        public Builder withStartTimeout(long value, TimeUnit unit) {
+            startTimeoutInMs = unit.toMillis(value);
+            return this;
+        }
+
         public EmbeddedElastic build() {
             return new EmbeddedElastic(
                     settings, 
                     new IndicesDescription(indices), 
-                    new InstallationDescription(version, downloadUrl, plugins));
+                    new InstallationDescription(version, downloadUrl, plugins),
+                    startTimeoutInMs);
         }
         
     }

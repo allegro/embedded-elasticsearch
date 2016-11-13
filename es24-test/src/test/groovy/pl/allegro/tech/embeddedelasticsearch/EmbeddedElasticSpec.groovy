@@ -10,8 +10,11 @@ import org.skyscreamer.jsonassert.JSONAssert
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.util.concurrent.TimeUnit
+
 import static PopularProperties.CLUSTER_NAME
 import static PopularProperties.TRANSPORT_TCP_PORT
+import static java.util.concurrent.TimeUnit.MINUTES
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
 class EmbeddedElasticSpec extends Specification {
@@ -20,19 +23,16 @@ class EmbeddedElasticSpec extends Specification {
     static final TRANSPORT_TCP_PORT_VALUE = 9930
     static final CLUSTER_NAME_VALUE = "myTestCluster"
     
-    @Shared
-    EmbeddedElastic embeddedElastic
-    
-    def setupSpec() {
-        embeddedElastic = EmbeddedElastic.builder()
-                .withElasticVersion(ELASTIC_VERSION)
-                .withSetting(TRANSPORT_TCP_PORT ,TRANSPORT_TCP_PORT_VALUE)
-                .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
-                .withIndex(CARS_INDEX_NAME, CARS_INDEX)
-                .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
-                .build()
-                .start()
-    }
+    static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
+            .withElasticVersion(ELASTIC_VERSION)
+            .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
+            .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
+            .withIndex(CARS_INDEX_NAME, CARS_INDEX)
+            .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
+            .withStartTimeout(1, MINUTES)
+            .build()
+            .start()
+    static Client client = createClient()
     
     def setup() {
         embeddedElastic.recreateIndices()
@@ -47,7 +47,7 @@ class EmbeddedElasticSpec extends Specification {
             index(FIAT_126p)
         
         then:
-            final result = createClient()
+            final result = client
                     .prepareSearch(CARS_INDEX_NAME)
                     .setTypes(CAR_INDEX_TYPE)
                     .setQuery(QueryBuilders.termQuery("model", FIAT_126p.model))
@@ -65,7 +65,7 @@ class EmbeddedElasticSpec extends Specification {
             embeddedElastic.index(CARS_INDEX_NAME, CAR_INDEX_TYPE, ["$id": document])
 
         then:
-            final GetResponse result = createClient()
+            final GetResponse result = client
                     .prepareGet(CARS_INDEX_NAME, CAR_INDEX_TYPE, id)
                     .execute().actionGet()
             result.exists
@@ -82,12 +82,12 @@ class EmbeddedElasticSpec extends Specification {
             embeddedElastic.recreateIndex(BOOKS_INDEX_NAME)
 
         then: "recreated index should be empty"
-            with(createClient().prepareSearch(BOOKS_INDEX_NAME).execute().actionGet()) { booksIndexSearchResult ->
+            with(client.prepareSearch(BOOKS_INDEX_NAME).execute().actionGet()) { booksIndexSearchResult ->
                 booksIndexSearchResult.hits.size() == 0
             }
         
         and: "other index should be untouched"
-            with(createClient().prepareSearch(CARS_INDEX_NAME).execute().actionGet()) { carsIndexSearchResult ->
+            with(client.prepareSearch(CARS_INDEX_NAME).execute().actionGet()) { carsIndexSearchResult ->
                 carsIndexSearchResult.hits.size() == 1
             }
     }
@@ -102,7 +102,7 @@ class EmbeddedElasticSpec extends Specification {
             embeddedElastic.recreateIndices()
         
         then: "recreated indices should be empty"
-            final result = createClient().prepareSearch().execute().actionGet()
+            final result = client.prepareSearch().execute().actionGet()
             result.hits.size() == 0
     }
     
@@ -112,19 +112,19 @@ class EmbeddedElasticSpec extends Specification {
             index(AMERICAN_PSYCHO)
         
         then:
-            with(createClient().prepareSearch(BOOKS_INDEX_NAME).setTypes(PAPER_BOOK_INDEX_TYPE).execute().actionGet()) { paperBooksSearchResult ->
+            with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(PAPER_BOOK_INDEX_TYPE).execute().actionGet()) { paperBooksSearchResult ->
                 paperBooksSearchResult.hits.hits.size() == 1
                 assertJsonsEquals(toJson(SHINING), paperBooksSearchResult.hits.hits[0].sourceAsString)
             }
         
         and:
-            with(createClient().prepareSearch(BOOKS_INDEX_NAME).setTypes(AUDIO_BOOK_INDEX_TYPE).execute().actionGet()) { audioBooksSearchResult ->
+            with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(AUDIO_BOOK_INDEX_TYPE).execute().actionGet()) { audioBooksSearchResult ->
                 audioBooksSearchResult.hits.hits.size() == 1
                 assertJsonsEquals(toJson(AMERICAN_PSYCHO), audioBooksSearchResult.hits.hits[0].sourceAsString)
             }
     }
     
-    Client createClient() {
+    static Client createClient() {
         Settings settings = Settings.settingsBuilder().put("cluster.name", CLUSTER_NAME_VALUE).build();
         TransportClient client = TransportClient.builder().settings(settings).build();
         client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), TRANSPORT_TCP_PORT_VALUE));

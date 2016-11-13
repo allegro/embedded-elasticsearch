@@ -21,20 +21,20 @@ class ElasticServer {
     
     private final File installationDirectory;
     private final File executableFile;
+    private final long startTimeoutInMs;
 
     private boolean started;
     private final Object startedLock = new Object();
 
-    private static final int ELS_START_TIMEOUT_IN_MS = 15_000;
-
     private Process elastic;
     private Thread ownerThread;
-    private int pid = -1;
-    private int httpPort = -1;
+    private volatile int pid = -1;
+    private volatile int httpPort = -1;
 
-    ElasticServer(File installationDirectory, File executableFile) {
+    ElasticServer(File installationDirectory, File executableFile, long startTimeoutInMs) {
         this.installationDirectory = installationDirectory;
         this.executableFile = executableFile;
+        this.startTimeoutInMs = startTimeoutInMs;
     }
 
     void start() throws IOException, InterruptedException {
@@ -96,7 +96,7 @@ class ElasticServer {
 
     private void waitForElasticToStart() throws InterruptedException, IOException {
         logger.info("Waiting for ElasticSearch to start...");
-        long waitUtil = System.currentTimeMillis() + ELS_START_TIMEOUT_IN_MS;
+        long waitUtil = System.currentTimeMillis() + startTimeoutInMs;
 
         synchronized (startedLock) {
             while (!started && System.currentTimeMillis() < waitUtil) {
