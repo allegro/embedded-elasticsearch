@@ -134,7 +134,7 @@ class ElasticRestClient {
         }
     }
 
-    private Stream<? extends String> searchForDocuments(Optional<String> indexMaybe) {
+    private Stream<String> searchForDocuments(Optional<String> indexMaybe) {
         String searchCommand = indexMaybe
                 .map(index -> "/" + index + "/_search")
                 .orElse("/_search");
