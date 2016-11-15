@@ -7,10 +7,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress
 import org.elasticsearch.index.query.QueryBuilders
 import org.elasticsearch.transport.client.PreBuiltTransportClient
 import org.skyscreamer.jsonassert.JSONAssert
-import spock.lang.Shared
 import spock.lang.Specification
-
-import java.util.concurrent.TimeUnit
 
 import static PopularProperties.CLUSTER_NAME
 import static PopularProperties.TRANSPORT_TCP_PORT
@@ -27,6 +24,7 @@ class EmbeddedElasticSpec extends Specification {
             .withElasticVersion(ELASTIC_VERSION)
             .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
             .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
+            .withEsJavaOpts("-Xms128m -Xmx512m")
             .withIndex(CARS_INDEX_NAME, CARS_INDEX)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
             .withStartTimeout(1, MINUTES)

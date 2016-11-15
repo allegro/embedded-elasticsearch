@@ -27,7 +27,7 @@ class ElasticSearchInstaller {
     private static final List<String> ELS_EXECUTABLE_FILES = Arrays.asList("elasticsearch", "elasticsearch.in.sh");
 
     private final File baseDirectory = new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir");
-    private InstanceSettings instanceSettings;
+    private final InstanceSettings instanceSettings;
     private final InstallationDescription installationDescription;
 
     ElasticSearchInstaller(InstanceSettings instanceSettings, InstallationDescription installationDescription) {

@@ -1,12 +1,9 @@
 package pl.allegro.tech.embeddedelasticsearch
 
-import com.google.common.base.Splitter
 import groovy.json.JsonSlurper
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClients
 import spock.lang.Specification
-
-import java.util.regex.Pattern
 
 class PluginsInstallationSpec extends Specification {
 
@@ -81,6 +78,7 @@ class PluginsInstallationSpec extends Specification {
     EmbeddedElastic.Builder baseEmbeddedElastic() {
         return EmbeddedElastic.builder()
                 .withElasticVersion("2.2.0")
+                .withEsJavaOpts("-Xms128m -Xmx512m")
                 .withSetting(PopularProperties.HTTP_PORT, HTTP_PORT_VALUE)
     }
 

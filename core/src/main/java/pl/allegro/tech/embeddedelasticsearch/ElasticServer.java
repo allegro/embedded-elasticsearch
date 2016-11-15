@@ -18,7 +18,8 @@ import static org.apache.commons.lang3.Validate.isTrue;
 class ElasticServer {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticServer.class);
-    
+
+    private final String esJavaOpts;
     private final File installationDirectory;
     private final File executableFile;
     private final long startTimeoutInMs;
@@ -30,8 +31,10 @@ class ElasticServer {
     private Thread ownerThread;
     private volatile int pid = -1;
     private volatile int httpPort = -1;
+    private volatile int transportTcpPort = -1;
 
-    ElasticServer(File installationDirectory, File executableFile, long startTimeoutInMs) {
+    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs) {
+        this.esJavaOpts = esJavaOpts;
         this.installationDirectory = installationDirectory;
         this.executableFile = executableFile;
         this.startTimeoutInMs = startTimeoutInMs;
@@ -69,6 +72,7 @@ class ElasticServer {
             try {
                 synchronized (this) {
                     ProcessBuilder builder = new ProcessBuilder();
+                    builder.environment().put("ES_JAVA_OPTS", esJavaOpts);
                     builder.redirectErrorStream(true);
                     builder.command(elasticExecutable());
                     elastic = builder.start();
@@ -120,6 +124,8 @@ class ElasticServer {
             tryExtractPid(line);
         } else if (line.contains("publish_address") && (line.contains("[http") || line.contains("HttpServer"))) {
             tryExtractHttpPort(line);
+        } else if (line.contains("publish_address") && (line.contains("[transport") || line.contains("TransportService"))) {
+            tryExtractTransportTcpPort(line);
         }
     }
 
@@ -142,6 +148,13 @@ class ElasticServer {
         isTrue(matcher.find());
         httpPort = Integer.parseInt(matcher.group(1));
         logger.info("Detected Elasticsearch http port : " + httpPort);
+    }
+    
+    private void tryExtractTransportTcpPort(String line) {
+        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+)\\}").matcher(line);
+        isTrue(matcher.find());
+        transportTcpPort = Integer.parseInt(matcher.group(1));
+        logger.info("Detected Elasticsearch transport tcp port : " + transportTcpPort);
     }
 
     private void stopElasticServer() throws IOException, InterruptedException {
@@ -186,5 +199,9 @@ class ElasticServer {
 
     int getHttpPort() {
         return httpPort;
+    }
+
+    int getTransportTcpPort() {
+        return transportTcpPort;
     }
 }

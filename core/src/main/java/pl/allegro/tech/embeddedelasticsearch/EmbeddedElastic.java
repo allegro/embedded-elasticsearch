@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 
 public final class EmbeddedElastic {
 
+    private final String esJavaOpts;
     private final InstanceSettings instanceSettings;
     private final IndicesDescription indicesDescription;
     private final InstallationDescription installationDescription;
@@ -31,7 +32,8 @@ public final class EmbeddedElastic {
         return new Builder();
     }
 
-    private EmbeddedElastic(InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
+    private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
+        this.esJavaOpts = esJavaOpts;
         this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
         this.installationDescription = installationDescription;
@@ -54,7 +56,7 @@ public final class EmbeddedElastic {
         elasticSearchInstaller.install();
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File installationDirectory = elasticSearchInstaller.getInstallationDirectory();
-        elasticServer = new ElasticServer(installationDirectory, executableFile, startTimeoutInMs);
+        elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, startTimeoutInMs);
     }
 
     private void startElastic() throws IOException, InterruptedException {
@@ -168,6 +170,20 @@ public final class EmbeddedElastic {
         return elasticRestClient.fetchAllDocuments(indices);
     }
 
+    /**
+     * Get transport tcp port number used by Elasticsearch
+     */
+    public int getTransportTcpPort() {
+        return elasticServer.getTransportTcpPort();
+    }
+
+    /**
+     * Get http port number
+     */
+    public int getHttpPort() {
+        return elasticServer.getHttpPort();
+    }
+
     public static final class Builder {
 
         private Optional<String> version = Optional.empty();
@@ -175,6 +191,7 @@ public final class EmbeddedElastic {
         private Optional<URL> downloadUrl = Optional.empty();
         private Map<String, IndexSettings> indices = new HashMap<>();
         private InstanceSettings settings = new InstanceSettings();
+        private String esJavaOpts = "";
         private long startTimeoutInMs = 15_000;
 
         private Builder() {
@@ -182,6 +199,11 @@ public final class EmbeddedElastic {
 
         public Builder withSetting(String name, Object value) {
             settings = settings.withSetting(name, value);
+            return this;
+        }
+        
+        public Builder withEsJavaOpts(String javaOpts) {
+            this.esJavaOpts = javaOpts;
             return this;
         }
 
@@ -237,6 +259,7 @@ public final class EmbeddedElastic {
 
         public EmbeddedElastic build() {
             return new EmbeddedElastic(
+                    esJavaOpts,
                     settings, 
                     new IndicesDescription(indices), 
                     new InstallationDescription(version, downloadUrl, plugins),

@@ -42,8 +42,12 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withElasticVersion(String version)` | version of Elasticsearch; based on that version download url to official Elasticsearch repository will be created |
 | `withDownloadUrl(URL downloadUrl)` | if you prefer to download Elasticsearch from different location than official repositories you can do that using this method |
 | `withSetting(String key, Object value)` | setting name and value as in elasticsearch.yml file |
-| `withPlugin(String name, String expression)` | plugin that should be installed into Elasticsearch; treat expression as argument to `./elasticsearch-plugin install` command; use multiple times for multiple plugins |
+| `withPlugin(String expression)` | plugin that should be installed into Elasticsearch; treat expression as argument to `./elasticsearch-plugin install <expression>` command; use multiple times for multiple plugins |
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
+| `withStartTimeout(long value, TimeUnit unit)` | specify timeout you give Elasticsearch to start |
+| `withEsJavaOpts(String javaOpts)` | value of `ES_JAVA_OPTS` variable to be set for Elasticsearch process |
+| `getTransportTcpPort()` | get transport tcp port number used by Elasticsearch instance |
+| `getHttpPort()` | get http port number used by Elasticsearch instance |
 
 Available `IndexSettings.Builder` options
 
@@ -75,7 +79,7 @@ To start using embedded-elasticsearch in your project add it as a test dependenc
 Gradle:
 
 ```
-testCompile 'pl.allegro.tech:embedded-elasticsearch:1.0.0'
+testCompile 'pl.allegro.tech:embedded-elasticsearch:2.0.0'
 ```
 
 Maven:
@@ -87,6 +91,22 @@ Maven:
     <version>2.0.0</version>
     <scope>testCompile</scope>
 </dependency>
+```
+
+## Known problems
+If you build your project on Travis, you may have problems with OOM errors when using default settings. You can change Elasticsearch memory settings using `withEsJavaOpts` method. Example (from spec `pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticSpec`):
+
+```
+    static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
+            .withElasticVersion(ELASTIC_VERSION)
+            .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
+            .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
+            .withEsJavaOpts("-Xms128m -Xmx512m")
+            .withIndex(CARS_INDEX_NAME, CARS_INDEX)
+            .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
+            .withStartTimeout(1, MINUTES)
+            .build()
+            .start()
 ```
 
 ## License
