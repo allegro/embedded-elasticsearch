@@ -31,6 +31,7 @@ class EmbeddedElasticSpec extends Specification {
             .withStartTimeout(1, MINUTES)
             .build()
             .start()
+
     static Client client = createClient()
 
     def setup() {
@@ -38,6 +39,7 @@ class EmbeddedElasticSpec extends Specification {
     }
 
     def cleanupSpec() {
+        client.close()
         embeddedElastic.stop()
     }
 
