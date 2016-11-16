@@ -23,6 +23,7 @@ class EmbeddedElasticSpec extends Specification {
 
     static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
+            .withEsJavaOpts("-Xms128m -Xmx512m")
             .withSetting(PopularProperties.TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
             .withSetting(PopularProperties.CLUSTER_NAME, CLUSTER_NAME_VALUE)
             .withIndex(SampleIndices.CARS_INDEX_NAME, SampleIndices.CARS_INDEX)

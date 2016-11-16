@@ -61,6 +61,7 @@ class PluginsInstallationSpec extends Specification {
     EmbeddedElastic.Builder baseEmbeddedElastic() {
         return EmbeddedElastic.builder()
                 .withElasticVersion("1.7.5")
+                .withEsJavaOpts("-Xms128m -Xmx512m")
                 .withSetting(PopularProperties.HTTP_PORT, HTTP_PORT_VALUE)
     }
 
