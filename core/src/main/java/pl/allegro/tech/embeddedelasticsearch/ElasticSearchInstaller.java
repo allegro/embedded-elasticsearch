@@ -1,5 +1,11 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
@@ -7,12 +13,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.forceMkdir;
@@ -74,12 +74,19 @@ class ElasticSearchInstaller {
             ProcessBuilder builder = new ProcessBuilder();
             builder.redirectOutput(Redirect.INHERIT);
             builder.redirectError(Redirect.INHERIT);
-            builder.command(pluginManager.getAbsolutePath(), "install", plugin.getExpression());
+            builder.command(prepareInstallCommand(pluginManager, plugin));
             Process process = builder.start();
             if (process.waitFor() != 0) {
                 throw new EmbeddedElasticsearchStartupException("Unable to install plugin: " + plugin);
             }
         }
+    }
+
+    private String[] prepareInstallCommand(File pluginManager, InstallationDescription.Plugin plugin) {
+        if (installationDescription.versionIs1x() && plugin.expressionIsUrl()) {
+            return new String[]{pluginManager.getAbsolutePath(), "--install", plugin.getPluginName(), "--url", plugin.getExpression()};
+        }
+        return new String[]{pluginManager.getAbsolutePath(), "install", plugin.getExpression()};
     }
 
     private File pluginManagerExecutable() {

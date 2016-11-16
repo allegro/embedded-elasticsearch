@@ -1,5 +1,7 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import org.apache.commons.io.FilenameUtils;
+
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -27,11 +29,11 @@ class InstallationDescription {
         this.plugins = plugins;
     }
 
-    public String getVersion() {
+    String getVersion() {
         return version;
     }
 
-    public URL getDownloadUrl() {
+    URL getDownloadUrl() {
         return downloadUrl;
     }
 
@@ -39,9 +41,13 @@ class InstallationDescription {
         return plugins;
     }
 
+    boolean versionIs1x() {
+        return version.startsWith("1.");
+    }
+
     static class Plugin {
         private String expression;
-        
+
         Plugin(String expression) {
             this.expression = expression;
         }
@@ -53,6 +59,17 @@ class InstallationDescription {
         @Override
         public String toString() {
             return expression;
+        }
+
+        String getPluginName() {
+            if (expressionIsUrl()) {
+                return FilenameUtils.getBaseName(expression).replaceAll("-[\\d].*", "");
+            }
+            return expression;
+        }
+
+        boolean expressionIsUrl() {
+            return expression.startsWith("http");
         }
     }
 }
