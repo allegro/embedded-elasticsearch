@@ -2,5 +2,6 @@ rootProject.name = 'embedded-elasticsearch'
 
 include 'core'
 include 'test-base'
-include 'es24-test'
+include 'es17-test'
+include 'es22-test'
 include 'es50-test'

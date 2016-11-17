@@ -144,14 +144,14 @@ class ElasticServer {
     }
 
     private void tryExtractHttpPort(String line) {
-        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+)\\}").matcher(line);
+        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+).?\\}").matcher(line);
         isTrue(matcher.find());
         httpPort = Integer.parseInt(matcher.group(1));
         logger.info("Detected Elasticsearch http port : " + httpPort);
     }
     
     private void tryExtractTransportTcpPort(String line) {
-        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+)\\}").matcher(line);
+        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+).?\\}").matcher(line);
         isTrue(matcher.find());
         transportTcpPort = Integer.parseInt(matcher.group(1));
         logger.info("Detected Elasticsearch transport tcp port : " + transportTcpPort);

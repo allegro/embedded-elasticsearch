@@ -1,0 +1,5 @@
+dependencies {
+    testCompile project(':test-base')
+
+    testCompile group: 'org.elasticsearch', name: 'elasticsearch', version: '1.7.5'
+}

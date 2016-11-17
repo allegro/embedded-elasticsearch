@@ -2,24 +2,24 @@ package pl.allegro.tech.embeddedelasticsearch
 
 import org.elasticsearch.action.get.GetResponse
 import org.elasticsearch.client.Client
+import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.common.transport.InetSocketTransportAddress
 import org.elasticsearch.index.query.QueryBuilders
-import org.elasticsearch.transport.client.PreBuiltTransportClient
 import org.skyscreamer.jsonassert.JSONAssert
 import spock.lang.Specification
 
-import static PopularProperties.CLUSTER_NAME
-import static PopularProperties.TRANSPORT_TCP_PORT
 import static java.util.concurrent.TimeUnit.MINUTES
+import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.CLUSTER_NAME
+import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.TRANSPORT_TCP_PORT
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
 class EmbeddedElasticSpec extends Specification {
     
-    static final ELASTIC_VERSION = "5.0.0"
+    static final ELASTIC_VERSION = "2.2.0"
     static final TRANSPORT_TCP_PORT_VALUE = 9930
     static final CLUSTER_NAME_VALUE = "myTestCluster"
-
+    
     static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
             .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
@@ -125,9 +125,10 @@ class EmbeddedElasticSpec extends Specification {
     }
     
     static Client createClient() {
-        Settings settings = Settings.builder().put("cluster.name", CLUSTER_NAME_VALUE).build();
-        return new PreBuiltTransportClient(settings)
-            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), TRANSPORT_TCP_PORT_VALUE));
+        Settings settings = Settings.settingsBuilder().put("cluster.name", CLUSTER_NAME_VALUE).build();
+        TransportClient client = TransportClient.builder().settings(settings).build();
+        client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), TRANSPORT_TCP_PORT_VALUE));
+        return client;
     }
     
     void assertJsonsEquals(String expectedJson, String actualJson) {

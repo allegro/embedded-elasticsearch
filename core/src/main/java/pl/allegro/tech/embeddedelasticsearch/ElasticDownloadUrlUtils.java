@@ -1,39 +1,49 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 class ElasticDownloadUrlUtils {
 
-    private static final String ELASTIC_2x_DOWNLOAD_URL = "https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/{VERSION}/elasticsearch-{VERSION}.zip";
-    private static final String ELASTIC_5x_DOWNLOAD_URL = "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{VERSION}.zip";
+    enum ElsDownloadUrl {
+        ELS_1x("1.", "https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-{VERSION}.zip"),
+        ELS_2x("2.", "https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/{VERSION}/elasticsearch-{VERSION}.zip"),
+        ELS_5x("5.", "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{VERSION}.zip");
 
-    static URL urlFromVersion(String elasticVersion) {
-        try {
-            if (is2xVersion(elasticVersion)) {
-                return new URL(StringUtils.replace(ELASTIC_2x_DOWNLOAD_URL, "{VERSION}", elasticVersion));
-            }
-            if (is5xVersion(elasticVersion)) {
-                return new URL(StringUtils.replace(ELASTIC_5x_DOWNLOAD_URL, "{VERSION}", elasticVersion));
-            }
-            throw new IllegalArgumentException("Invalid version: " + elasticVersion);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+        String versionPrefix;
+        String downloadUrl;
+
+        ElsDownloadUrl(String versionPrefix, String downloadUrl) {
+            this.versionPrefix = versionPrefix;
+            this.downloadUrl = downloadUrl;
+        }
+
+        boolean versionMatch(String elasticVersion) {
+            return elasticVersion.startsWith(versionPrefix);
+        }
+
+        static ElsDownloadUrl getByVersion(String elasticVersion) {
+            return Arrays.stream(ElsDownloadUrl.values())
+                    .filter(u -> u.versionMatch(elasticVersion))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid version: " + elasticVersion));
         }
     }
 
-    private static boolean is2xVersion(String elasticVersion) {
-        return elasticVersion.startsWith("2.");
-    }
-
-    private static boolean is5xVersion(String elasticVersion) {
-        return elasticVersion.startsWith("5.");
+    static URL urlFromVersion(String elasticVersion) {
+        ElsDownloadUrl elsDownloadUrl = ElsDownloadUrl.getByVersion(elasticVersion);
+        try {
+            return new URL(StringUtils.replace(elsDownloadUrl.downloadUrl, "{VERSION}", elasticVersion));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static String versionFromUrl(URL url) {
