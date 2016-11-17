@@ -14,6 +14,19 @@ import static SampleIndices.AudioBook
 import static SampleIndices.Car
 import static SampleIndices.PaperBook
 import static java.util.concurrent.TimeUnit.MINUTES
+import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.CLUSTER_NAME
+import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.TRANSPORT_TCP_PORT
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.AMERICAN_PSYCHO
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.AUDIO_BOOK_INDEX_TYPE
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOKS_INDEX
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOKS_INDEX_NAME
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CARS_INDEX
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CARS_INDEX_NAME
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CAR_INDEX_TYPE
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.FIAT_126p
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.toJson
 
 class EmbeddedElasticSpec extends Specification {
 
@@ -24,10 +37,10 @@ class EmbeddedElasticSpec extends Specification {
     static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
             .withEsJavaOpts("-Xms128m -Xmx512m")
-            .withSetting(PopularProperties.TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
-            .withSetting(PopularProperties.CLUSTER_NAME, CLUSTER_NAME_VALUE)
-            .withIndex(SampleIndices.CARS_INDEX_NAME, SampleIndices.CARS_INDEX)
-            .withIndex(SampleIndices.BOOKS_INDEX_NAME, SampleIndices.BOOKS_INDEX)
+            .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
+            .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
+            .withIndex(CARS_INDEX_NAME, CARS_INDEX)
+            .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
             .withStartTimeout(1, MINUTES)
             .build()
             .start()
@@ -45,29 +58,29 @@ class EmbeddedElasticSpec extends Specification {
 
     def "should index document"() {
         when:
-        index(SampleIndices.FIAT_126p)
+        index(FIAT_126p)
 
         then:
         final result = client
-                .prepareSearch(SampleIndices.CARS_INDEX_NAME)
-                .setTypes(SampleIndices.CAR_INDEX_TYPE)
-                .setQuery(QueryBuilders.termQuery("model", SampleIndices.FIAT_126p.model))
+                .prepareSearch(CARS_INDEX_NAME)
+                .setTypes(CAR_INDEX_TYPE)
+                .setQuery(QueryBuilders.termQuery("model", FIAT_126p.model))
                 .execute().actionGet()
         result.hits.totalHits() == 1
-        assertJsonsEquals(SampleIndices.toJson(SampleIndices.FIAT_126p), result.hits.hits[0].sourceAsString)
+        assertJsonsEquals(toJson(FIAT_126p), result.hits.hits[0].sourceAsString)
     }
 
     def "should index document with id"() {
         given:
         final id = "some-id"
-        final document = SampleIndices.toJson(SampleIndices.FIAT_126p)
+        final document = toJson(FIAT_126p)
 
         when:
-        embeddedElastic.index(SampleIndices.CARS_INDEX_NAME, SampleIndices.CAR_INDEX_TYPE, ["$id": document])
+        embeddedElastic.index(CARS_INDEX_NAME, CAR_INDEX_TYPE, ["$id": document])
 
         then:
         final GetResponse result = client
-                .prepareGet(SampleIndices.CARS_INDEX_NAME, SampleIndices.CAR_INDEX_TYPE, id)
+                .prepareGet(CARS_INDEX_NAME, CAR_INDEX_TYPE, id)
                 .execute().actionGet()
         result.exists
         assertJsonsEquals(document, result.sourceAsString)
@@ -75,29 +88,29 @@ class EmbeddedElasticSpec extends Specification {
 
     def "should recreate only specified index"() {
         given: "indices with some documents"
-        index(SampleIndices.FIAT_126p)
-        index(SampleIndices.SHINING)
-        index(SampleIndices.AMERICAN_PSYCHO)
+        index(FIAT_126p)
+        index(SHINING)
+        index(AMERICAN_PSYCHO)
 
         when: "recreating index"
-        embeddedElastic.recreateIndex(SampleIndices.BOOKS_INDEX_NAME)
+        embeddedElastic.recreateIndex(BOOKS_INDEX_NAME)
 
         then: "recreated index should be empty"
-        with(client.prepareSearch(SampleIndices.BOOKS_INDEX_NAME).execute().actionGet()) { booksIndexSearchResult ->
+        with(client.prepareSearch(BOOKS_INDEX_NAME).execute().actionGet()) { booksIndexSearchResult ->
             booksIndexSearchResult.hits.size() == 0
         }
 
         and: "other index should be untouched"
-        with(client.prepareSearch(SampleIndices.CARS_INDEX_NAME).execute().actionGet()) { carsIndexSearchResult ->
+        with(client.prepareSearch(CARS_INDEX_NAME).execute().actionGet()) { carsIndexSearchResult ->
             carsIndexSearchResult.hits.size() == 1
         }
     }
 
     def "should recreate all indices"() {
         given: "indices with some documents"
-        index(SampleIndices.FIAT_126p)
-        index(SampleIndices.SHINING)
-        index(SampleIndices.AMERICAN_PSYCHO)
+        index(FIAT_126p)
+        index(SHINING)
+        index(AMERICAN_PSYCHO)
 
         when: "recreating index"
         embeddedElastic.recreateIndices()
@@ -109,19 +122,19 @@ class EmbeddedElasticSpec extends Specification {
 
     def "should place document under right index and type"() {
         when:
-        index(SampleIndices.SHINING)
-        index(SampleIndices.AMERICAN_PSYCHO)
+        index(SHINING)
+        index(AMERICAN_PSYCHO)
 
         then:
-        with(client.prepareSearch(SampleIndices.BOOKS_INDEX_NAME).setTypes(SampleIndices.PAPER_BOOK_INDEX_TYPE).execute().actionGet()) { paperBooksSearchResult ->
+        with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(PAPER_BOOK_INDEX_TYPE).execute().actionGet()) { paperBooksSearchResult ->
             paperBooksSearchResult.hits.hits.size() == 1
-            assertJsonsEquals(SampleIndices.toJson(SampleIndices.SHINING), paperBooksSearchResult.hits.hits[0].sourceAsString)
+            assertJsonsEquals(toJson(SHINING), paperBooksSearchResult.hits.hits[0].sourceAsString)
         }
 
         and:
-        with(client.prepareSearch(SampleIndices.BOOKS_INDEX_NAME).setTypes(SampleIndices.AUDIO_BOOK_INDEX_TYPE).execute().actionGet()) { audioBooksSearchResult ->
+        with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(AUDIO_BOOK_INDEX_TYPE).execute().actionGet()) { audioBooksSearchResult ->
             audioBooksSearchResult.hits.hits.size() == 1
-            assertJsonsEquals(SampleIndices.toJson(SampleIndices.AMERICAN_PSYCHO), audioBooksSearchResult.hits.hits[0].sourceAsString)
+            assertJsonsEquals(toJson(AMERICAN_PSYCHO), audioBooksSearchResult.hits.hits[0].sourceAsString)
         }
     }
 
@@ -137,15 +150,15 @@ class EmbeddedElasticSpec extends Specification {
     }
 
     void index(Car car) {
-        embeddedElastic.index(SampleIndices.CARS_INDEX_NAME, SampleIndices.CAR_INDEX_TYPE, SampleIndices.toJson(car))
+        embeddedElastic.index(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(car))
     }
 
     void index(PaperBook book) {
-        embeddedElastic.index(SampleIndices.BOOKS_INDEX_NAME, SampleIndices.PAPER_BOOK_INDEX_TYPE, SampleIndices.toJson(book))
+        embeddedElastic.index(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(book))
     }
 
     void index(AudioBook book) {
-        embeddedElastic.index(SampleIndices.BOOKS_INDEX_NAME, SampleIndices.AUDIO_BOOK_INDEX_TYPE, SampleIndices.toJson(book))
+        embeddedElastic.index(BOOKS_INDEX_NAME, AUDIO_BOOK_INDEX_TYPE, toJson(book))
     }
 
 }
