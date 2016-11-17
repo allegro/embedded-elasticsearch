@@ -58,84 +58,84 @@ class EmbeddedElasticSpec extends Specification {
 
     def "should index document"() {
         when:
-        index(FIAT_126p)
+            index(FIAT_126p)
 
         then:
-        final result = client
-                .prepareSearch(CARS_INDEX_NAME)
-                .setTypes(CAR_INDEX_TYPE)
-                .setQuery(QueryBuilders.termQuery("model", FIAT_126p.model))
-                .execute().actionGet()
-        result.hits.totalHits() == 1
-        assertJsonsEquals(toJson(FIAT_126p), result.hits.hits[0].sourceAsString)
+            final result = client
+                    .prepareSearch(CARS_INDEX_NAME)
+                    .setTypes(CAR_INDEX_TYPE)
+                    .setQuery(QueryBuilders.termQuery("model", FIAT_126p.model))
+                    .execute().actionGet()
+            result.hits.totalHits() == 1
+            assertJsonsEquals(toJson(FIAT_126p), result.hits.hits[0].sourceAsString)
     }
 
     def "should index document with id"() {
         given:
-        final id = "some-id"
-        final document = toJson(FIAT_126p)
+            final id = "some-id"
+            final document = toJson(FIAT_126p)
 
         when:
-        embeddedElastic.index(CARS_INDEX_NAME, CAR_INDEX_TYPE, ["$id": document])
+            embeddedElastic.index(CARS_INDEX_NAME, CAR_INDEX_TYPE, ["$id": document])
 
         then:
-        final GetResponse result = client
-                .prepareGet(CARS_INDEX_NAME, CAR_INDEX_TYPE, id)
-                .execute().actionGet()
-        result.exists
-        assertJsonsEquals(document, result.sourceAsString)
+            final GetResponse result = client
+                    .prepareGet(CARS_INDEX_NAME, CAR_INDEX_TYPE, id)
+                    .execute().actionGet()
+            result.exists
+            assertJsonsEquals(document, result.sourceAsString)
     }
 
     def "should recreate only specified index"() {
         given: "indices with some documents"
-        index(FIAT_126p)
-        index(SHINING)
-        index(AMERICAN_PSYCHO)
+            index(FIAT_126p)
+            index(SHINING)
+            index(AMERICAN_PSYCHO)
 
         when: "recreating index"
-        embeddedElastic.recreateIndex(BOOKS_INDEX_NAME)
+            embeddedElastic.recreateIndex(BOOKS_INDEX_NAME)
 
         then: "recreated index should be empty"
-        with(client.prepareSearch(BOOKS_INDEX_NAME).execute().actionGet()) { booksIndexSearchResult ->
-            booksIndexSearchResult.hits.size() == 0
-        }
+            with(client.prepareSearch(BOOKS_INDEX_NAME).execute().actionGet()) { booksIndexSearchResult ->
+                booksIndexSearchResult.hits.size() == 0
+            }
 
         and: "other index should be untouched"
-        with(client.prepareSearch(CARS_INDEX_NAME).execute().actionGet()) { carsIndexSearchResult ->
-            carsIndexSearchResult.hits.size() == 1
-        }
+            with(client.prepareSearch(CARS_INDEX_NAME).execute().actionGet()) { carsIndexSearchResult ->
+                carsIndexSearchResult.hits.size() == 1
+            }
     }
 
     def "should recreate all indices"() {
         given: "indices with some documents"
-        index(FIAT_126p)
-        index(SHINING)
-        index(AMERICAN_PSYCHO)
+            index(FIAT_126p)
+            index(SHINING)
+            index(AMERICAN_PSYCHO)
 
         when: "recreating index"
-        embeddedElastic.recreateIndices()
+            embeddedElastic.recreateIndices()
 
         then: "recreated indices should be empty"
-        final result = client.prepareSearch().execute().actionGet()
-        result.hits.size() == 0
+            final result = client.prepareSearch().execute().actionGet()
+            result.hits.size() == 0
     }
 
     def "should place document under right index and type"() {
         when:
-        index(SHINING)
-        index(AMERICAN_PSYCHO)
+            index(SHINING)
+            index(AMERICAN_PSYCHO)
 
         then:
-        with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(PAPER_BOOK_INDEX_TYPE).execute().actionGet()) { paperBooksSearchResult ->
-            paperBooksSearchResult.hits.hits.size() == 1
-            assertJsonsEquals(toJson(SHINING), paperBooksSearchResult.hits.hits[0].sourceAsString)
-        }
+            with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(PAPER_BOOK_INDEX_TYPE).execute().actionGet()) { paperBooksSearchResult ->
+                paperBooksSearchResult.hits.hits.size() == 1
+                assertJsonsEquals(toJson(SHINING), paperBooksSearchResult.hits.hits[0].sourceAsString)
+            }
 
         and:
-        with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(AUDIO_BOOK_INDEX_TYPE).execute().actionGet()) { audioBooksSearchResult ->
-            audioBooksSearchResult.hits.hits.size() == 1
-            assertJsonsEquals(toJson(AMERICAN_PSYCHO), audioBooksSearchResult.hits.hits[0].sourceAsString)
-        }
+            with(client.prepareSearch(BOOKS_INDEX_NAME).setTypes(AUDIO_BOOK_INDEX_TYPE).execute().actionGet()) { audioBooksSearchResult ->
+                audioBooksSearchResult.hits.hits.size() == 1
+                assertJsonsEquals(toJson(AMERICAN_PSYCHO), audioBooksSearchResult.hits.hits[0].sourceAsString)
+            }
     }
 
     static Client createClient() {
