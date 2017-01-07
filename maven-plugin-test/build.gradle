@@ -1,0 +1,23 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+
+task generatePom {
+    doLast {
+        final engine = new groovy.text.SimpleTemplateEngine()
+        final templateText = new File(project.projectDir, "template-pom.xml").text
+        final template = engine.createTemplate(templateText).make([
+                groupId: project.parent.group,
+                version: project.parent.version])
+        final pomFile = new File(project.projectDir, "pom.xml")
+        pomFile.delete()
+        pomFile << template.toString()
+    }
+}
+
+task mvnVerify(type: Exec, dependsOn: generatePom) {
+    workingDir project.projectDir
+    commandLine 'mvn'
+    args('clean', 'verify')
+}
+
+test.dependsOn(mvnVerify)

@@ -1,15 +1,16 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
@@ -19,9 +20,9 @@ class ElasticServer {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticServer.class);
 
-    private final String esJavaOpts;
     private final File installationDirectory;
     private final File executableFile;
+    private final String esJavaOpts;
     private final long startTimeoutInMs;
 
     private boolean started;
@@ -33,10 +34,10 @@ class ElasticServer {
     private volatile int httpPort = -1;
     private volatile int transportTcpPort = -1;
 
-    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs) {
-        this.esJavaOpts = esJavaOpts;
+    ElasticServer(File installationDirectory, File executableFile, String esJavaOpts, long startTimeoutInMs) {
         this.installationDirectory = installationDirectory;
         this.executableFile = executableFile;
+        this.esJavaOpts = esJavaOpts;
         this.startTimeoutInMs = startTimeoutInMs;
     }
 

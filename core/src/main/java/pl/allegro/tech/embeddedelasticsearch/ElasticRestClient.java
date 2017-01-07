@@ -1,15 +1,9 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -20,9 +14,18 @@ import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static pl.allegro.tech.embeddedelasticsearch.HttpStatusCodes.OK;
 
@@ -30,24 +33,17 @@ class ElasticRestClient {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticRestClient.class);
 
-    private int elasticsearchHttpPort;
-    private final HttpClient httpClient;
-    private final IndicesDescription indicesDescription;
+    private final HttpClient httpClient = new HttpClient();
+    private final String connectionUrl;
 
-    ElasticRestClient(int elasticsearchHttpPort, HttpClient httpClient, IndicesDescription indicesDescription) {
-        this.elasticsearchHttpPort = elasticsearchHttpPort;
-        this.httpClient = httpClient;
-        this.indicesDescription = indicesDescription;
+    ElasticRestClient(String connectionUrl) {
+        this.connectionUrl = connectionUrl;
     }
 
-    void createIndices() {
-        indicesDescription.getIndicesNames().forEach(this::createIndex);
-    }
-
-    void createIndex(String indexName) {
+    void createIndex(String indexName, IndexSettings indexSettings) {
         if (!indexExists(indexName)) {
             HttpPut request = new HttpPut(url("/" + indexName));
-            request.setEntity(new StringEntity(indicesDescription.getIndexSettings(indexName).toJson().toString(), APPLICATION_JSON));
+            request.setEntity(new StringEntity(indexSettings.toJson().toString(), APPLICATION_JSON));
             CloseableHttpResponse response = httpClient.execute(request);
             if (response.getStatusLine().getStatusCode() != 200) {
                 String responseBody = readBodySafely(response);
@@ -67,10 +63,6 @@ class ElasticRestClient {
         HttpGet request = new HttpGet(url("/_cluster/health?wait_for_status=yellow&timeout=60s"));
         CloseableHttpResponse response = httpClient.execute(request);
         assertOk(response, "Cluster does not reached yellow status in specified timeout");
-    }
-
-    void deleteIndices() {
-        indicesDescription.getIndicesNames().forEach(this::deleteIndex);
     }
 
     void deleteIndex(String indexName) {
@@ -106,7 +98,7 @@ class ElasticRestClient {
     }
 
     private String url(String path) {
-        return "http://localhost:" + elasticsearchHttpPort + path;
+        return removeEnd(connectionUrl, "/") + "/" + removeStart(path, "/");
     }
 
     private void assertOk(CloseableHttpResponse response, String message) {

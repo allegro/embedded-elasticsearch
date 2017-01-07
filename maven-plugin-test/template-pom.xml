@@ -1,0 +1,76 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pl.allegro.tech</groupId>
+    <artifactId>embedded-elasticsearch-maven-plugin-test</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <description>embedded-elasticsearch-maven-plugin</description>
+
+    <properties>
+        <elsHttpPort>9123</elsHttpPort>
+        <elsClusterName>els-mvn-plugin-test</elsClusterName>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+            </dependency>
+            <dependency>
+                <groupId>pl.allegro.tech</groupId>
+                <artifactId>embedded-elasticsearch</artifactId>
+                <version>${version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>pl.allegro.tech</groupId>
+                <artifactId>embedded-elasticsearch-maven-plugin</artifactId>
+                <version>${version}</version>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>start-for-tests</id>
+                        <phase>test</phase>
+                        <configuration>
+                            <version>2.2.0</version>
+                            <plugins>
+                                <plugin>http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-analysis-decompound/2.2.0.0/elasticsearch-analysis-decompound-2.2.0.0-plugin.zip</plugin>
+                                <plugin>analysis-stempel</plugin>
+                            </plugins>
+                            <settings>
+                                <http.port>\${elsHttpPort}</http.port>
+                                <cluster.name>\${elsClusterName}</cluster.name>
+                            </settings>
+                        </configuration>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <modules>
+        <module>module_1</module>
+        <module>module_2</module>
+    </modules>
+</project>

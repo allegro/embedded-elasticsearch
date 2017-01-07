@@ -1,0 +1,96 @@
+buildscript {
+    repositories { 
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3'
+    }
+}
+
+plugins {
+    id 'com.bmuschko.nexus' version '2.3.1'
+}
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'io.codearte.nexus-staging'
+apply plugin: 'maven'
+
+project.group = project.parent.group
+project.version = project.parent.version
+jar.baseName = 'embedded-elasticsearch-maven-plugin'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.apache.maven:maven-plugin-api:3.3.9'
+    compile 'org.apache.maven.plugin-tools:maven-plugin-annotations:3.5'
+    compile 'org.apache.maven:maven-project:2.2.1'
+    compile "${project.group}:embedded-elasticsearch:${project.version}"
+}
+
+task generatePom {
+    doLast {
+        final engine = new groovy.text.SimpleTemplateEngine()
+        final templateText = new File(project.projectDir, "template-pom.xml").text
+        final template = engine.createTemplate(templateText).make([
+                groupId: project.parent.group,
+                version: project.parent.version])
+        final pomFile = new File(project.projectDir, "pom.xml")
+        pomFile.delete()
+        pomFile << template.toString()
+    }
+}
+
+task mvnProcessClasses(type: Exec, dependsOn: generatePom) {
+    workingDir project.projectDir
+    commandLine 'mvn'
+    args('clean', 'process-classes')
+}
+
+task copyMetaInf(type: Copy, dependsOn: mvnProcessClasses) {
+    from new File(new File(new File(project.projectDir, 'target'), 'classes'), 'META-INF').absolutePath
+    destinationDir new File(new File(new File(project.buildDir, 'classes'), 'main'), 'META-INF')
+}
+
+compileJava.dependsOn(copyMetaInf)
+test.dependsOn(install)
+
+nexusStaging {
+    packageGroup = 'pl.allegro'
+    numberOfRetries = 15
+    delayBetweenRetriesInMillis = 5000
+}
+
+modifyPom {
+    project {
+        name 'embedded-elasticsearch-maven-plugin'
+        description 'Tool that ease up creation of integration tests with Elasticsearch'
+        url 'https://github.com/allegro/embedded-elasticsearch'
+        inceptionYear '2016'
+
+        scm {
+            url 'https://github.com/allegro/embedded-elasticsearch'
+            connection 'scm:git@github.com:allegro/embedded-elasticsearch.git'
+            developerConnection 'scm:git@github.com:allegro/embedded-elasticsearch.git'
+        }
+
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+
+        developers {
+            developer {
+                id 'yukon'
+                name 'YUKON'
+            }
+        }
+    }
+}

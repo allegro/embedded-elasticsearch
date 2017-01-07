@@ -15,32 +15,21 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.FileUtils.forceDelete;
 import static org.apache.commons.io.FileUtils.forceMkdir;
-import static org.apache.commons.io.FileUtils.getFile;
 import static org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
 import static pl.allegro.tech.embeddedelasticsearch.ElasticDownloadUrlUtils.constructLocalFileName;
 
 class ElasticSearchInstaller {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchInstaller.class);
-    private static final String ELS_PACKAGE_PREFIX = "elasticsearch-";
     private static final List<String> ELS_EXECUTABLE_FILES = Arrays.asList("elasticsearch", "elasticsearch.in.sh");
 
     private final File baseDirectory = new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir");
-    private final InstanceSettings instanceSettings;
     private final InstallationDescription installationDescription;
 
-    ElasticSearchInstaller(InstanceSettings instanceSettings, InstallationDescription installationDescription) {
-        this.instanceSettings = instanceSettings;
+    ElasticSearchInstaller(InstallationDescription installationDescription) {
         this.installationDescription = installationDescription;
-    }
-
-    File getExecutableFile() {
-        return fileRelativeToInstallationDir("bin", systemDependentExtension("elasticsearch"));
-    }
-
-    File getInstallationDirectory() {
-        return getFile(baseDirectory, ELS_PACKAGE_PREFIX + installationDescription.getVersion());
     }
 
     void install() throws IOException, InterruptedException {
@@ -61,12 +50,11 @@ class ElasticSearchInstaller {
     }
 
     private void configureElastic() throws IOException {
-        File elasticsearchYml = getFile(getInstallationDirectory(), "config", "elasticsearch.yml");
-        FileUtils.writeStringToFile(elasticsearchYml, instanceSettings.toYaml(), UTF_8);
+        FileUtils.writeStringToFile(ElsFilesUtils.getElasticsearchYmlConfigFile(), installationDescription.getInstanceSettingsAsYaml(), UTF_8);
     }
 
     private void installPlugins() throws IOException, InterruptedException {
-        File pluginManager = pluginManagerExecutable();
+        File pluginManager = ElsFilesUtils.getPluginManagerExecutable();
         setExecutable(pluginManager);
 
         for (InstallationDescription.Plugin plugin : installationDescription.getPlugins()) {
@@ -89,25 +77,9 @@ class ElasticSearchInstaller {
         return new String[]{pluginManager.getAbsolutePath(), "install", plugin.getExpression()};
     }
 
-    private File pluginManagerExecutable() {
-        File elasticsearchPlugin = fileRelativeToInstallationDir("bin", systemDependentExtension("elasticsearch-plugin"));
-        if (elasticsearchPlugin.exists()) {
-            return elasticsearchPlugin;
-        } else {
-            return fileRelativeToInstallationDir("bin", systemDependentExtension("plugin"));
-        }
-    }
-
-    private String systemDependentExtension(String baseFileName) {
-        return baseFileName + (IS_OS_WINDOWS ? ".bat" : "");
-    }
-
-    private File fileRelativeToInstallationDir(String... path) {
-        return getFile(getInstallationDirectory(), path);
-    }
-
     private Path download(URL source) throws IOException {
         File target = new File(baseDirectory, constructLocalFileName(source));
+        deleteFileIfItsNotZipArchive(target);
         if (!target.exists()) {
             logger.info("Downloading : " + source + " to " + target + "...");
             FileUtils.copyURLToFile(source, target);
@@ -116,6 +88,21 @@ class ElasticSearchInstaller {
             logger.info("Download skipped");
         }
         return target.toPath();
+    }
+
+    private void deleteFileIfItsNotZipArchive(File target) throws IOException {
+        if (target.exists() && !isValidZipFile(target)) {
+            forceDelete(target);
+        }
+    }
+
+    private boolean isValidZipFile(File target) {
+        try {
+            return new ZipFile(target).isValidZipFile();
+        } catch (ZipException e) {
+            logger.error("Problem with zip file occurred", e);
+            return false;
+        }
     }
 
     private void install(String what, String relativePath, Path downloadedFile) throws IOException {
@@ -135,9 +122,9 @@ class ElasticSearchInstaller {
         if (IS_OS_WINDOWS) {
             return;
         }
-        File binDirectory = getFile(baseDirectory, ELS_PACKAGE_PREFIX + installationDescription.getVersion(), "bin");
+
         for (String fn : ELS_EXECUTABLE_FILES) {
-            setExecutable(new File(binDirectory, fn));
+            setExecutable(new File(ElsFilesUtils.getBinDirectory(), fn));
         }
     }
 
@@ -145,4 +132,9 @@ class ElasticSearchInstaller {
         logger.info("Applying executable permissions on " + executableFile);
         executableFile.setExecutable(true);
     }
+
+    public ElasticServer createElasticServerInstance() {
+        return new ElasticServer(ElsFilesUtils.getInstallationDirectory(), ElsFilesUtils.getExecutableFile(), installationDescription.getEsJavaOpts(), installationDescription.getStartTimeoutInMs());
+    }
+
 }

@@ -1,7 +1,7 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import java.io.File;
-import java.io.IOException;
+import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
+
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -13,71 +13,45 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
-
 import static java.util.stream.Collectors.toList;
+import static pl.allegro.tech.embeddedelasticsearch.Require.require;
 
 public final class EmbeddedElastic {
 
-    private final String esJavaOpts;
-    private final InstanceSettings instanceSettings;
     private final IndicesDescription indicesDescription;
-    private final InstallationDescription installationDescription;
-    private final long startTimeoutInMs;
+    private final ElsInstance elsInstance;
 
-    private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
 
     public static Builder builder() {
         return new Builder();
     }
 
-    private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
-        this.esJavaOpts = esJavaOpts;
-        this.instanceSettings = instanceSettings;
+    private EmbeddedElastic(IndicesDescription indicesDescription, ElsInstance elsInstance) {
         this.indicesDescription = indicesDescription;
-        this.installationDescription = installationDescription;
-        this.startTimeoutInMs = startTimeoutInMs;
+        this.elsInstance = elsInstance;
     }
 
     /**
      * Downloads Elasticsearch with specified plugins, setups them and starts
      */
-    public EmbeddedElastic start() throws IOException, InterruptedException {
-        installElastic();
-        startElastic();
-        createRestClient();
+    public EmbeddedElastic start() {
+        elsInstance.start();
+        elasticRestClient = elsInstance.createRestClient();
         createIndices();
         return this;
-    }
-
-    private void installElastic() throws IOException, InterruptedException {
-        ElasticSearchInstaller elasticSearchInstaller = new ElasticSearchInstaller(instanceSettings, installationDescription);
-        elasticSearchInstaller.install();
-        File executableFile = elasticSearchInstaller.getExecutableFile();
-        File installationDirectory = elasticSearchInstaller.getInstallationDirectory();
-        elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, startTimeoutInMs);
-    }
-
-    private void startElastic() throws IOException, InterruptedException {
-        if (!elasticServer.isStarted()) {
-            elasticServer.start();
-        }
-    }
-
-    private void createRestClient() throws UnknownHostException {
-        elasticRestClient = new ElasticRestClient(elasticServer.getHttpPort(), new HttpClient(), indicesDescription);
     }
 
     /**
      * Stops Elasticsearch instance and removes data
      */
     public void stop() {
-        elasticServer.stop();
+        elsInstance.stop();
     }
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index type
      * @param idJsonMap map where keys are documents ids and values are documents represented as JSON
@@ -90,9 +64,10 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index name
-     * @param json document represented as JSON
+     * @param json      document represented as JSON
      */
     public void index(String indexName, String indexType, String... json) {
         index(indexName, indexType, Arrays.asList(json));
@@ -100,9 +75,10 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index name
-     * @param jsons documents represented as JSON
+     * @param jsons     documents represented as JSON
      */
     public void index(String indexName, String indexType, List<CharSequence> jsons) {
         elasticRestClient.indexWithIds(indexName, indexType, jsons.stream().map(json -> new DocumentWithId(null, json.toString())).collect(Collectors.toList()));
@@ -118,6 +94,7 @@ public final class EmbeddedElastic {
 
     /**
      * Recreates specified index (i.e. deletes and creates it again)
+     *
      * @param indexName index to recreate
      */
     public void recreateIndex(String indexName) {
@@ -129,11 +106,12 @@ public final class EmbeddedElastic {
      * Delete all indices
      */
     public void deleteIndices() {
-        elasticRestClient.deleteIndices();
+        indicesDescription.getIndicesNames().forEach(elasticRestClient::deleteIndex);
     }
 
     /**
      * Delete specified index
+     *
      * @param indexName index do delete
      */
     public void deleteIndex(String indexName) {
@@ -144,15 +122,17 @@ public final class EmbeddedElastic {
      * Create all indices
      */
     public void createIndices() {
-        elasticRestClient.createIndices();
+        indicesDescription.getIndicesNames().forEach(indexName ->
+                elasticRestClient.createIndex(indexName, indicesDescription.getIndexSettings(indexName)));
     }
 
     /**
      * Create specified index. Note that you can specify only index from list of indices specified during EmbeddedElastic creation
+     *
      * @param indexName index to create
      */
     public void createIndex(String indexName) {
-        elasticRestClient.createIndex(indexName);
+        elasticRestClient.createIndex(indexName, indicesDescription.getIndexSettings(indexName));
     }
 
     /**
@@ -164,6 +144,7 @@ public final class EmbeddedElastic {
 
     /**
      * Fetch all documents from specified indices. Useful for logging and debugging
+     *
      * @return list containing documents sources represented as JSON
      */
     public List<String> fetchAllDocuments(String... indices) throws UnknownHostException {
@@ -172,16 +153,20 @@ public final class EmbeddedElastic {
 
     /**
      * Get transport tcp port number used by Elasticsearch
+     * 
+     * Not supported when you are attaching to existing cluster
      */
     public int getTransportTcpPort() {
-        return elasticServer.getTransportTcpPort();
+        return elsInstance.getTransportTcpPort();
     }
 
     /**
      * Get http port number
+     *
+     * Not supported when you are attaching to existing cluster
      */
     public int getHttpPort() {
-        return elasticServer.getHttpPort();
+        return elsInstance.getHttpPort();
     }
 
     public static final class Builder {
@@ -193,6 +178,7 @@ public final class EmbeddedElastic {
         private InstanceSettings settings = new InstanceSettings();
         private String esJavaOpts = "";
         private long startTimeoutInMs = 15_000;
+        private Optional<String> existingInstanceUrl = Optional.empty();
 
         private Builder() {
         }
@@ -201,7 +187,7 @@ public final class EmbeddedElastic {
             settings = settings.withSetting(name, value);
             return this;
         }
-        
+
         public Builder withEsJavaOpts(String javaOpts) {
             this.esJavaOpts = javaOpts;
             return this;
@@ -226,7 +212,7 @@ public final class EmbeddedElastic {
 
         /**
          * Plugin that should be installed with created instance. Treat invocation of this method as invocation of elasticsearch-plugin install command:
-         * 
+         * <p>
          * <pre>./elasticsearch-plugin install EXPRESSION</pre>
          */
         public Builder withPlugin(String expression) {
@@ -257,15 +243,28 @@ public final class EmbeddedElastic {
             return this;
         }
 
-        public EmbeddedElastic build() {
-            return new EmbeddedElastic(
-                    esJavaOpts,
-                    settings, 
-                    new IndicesDescription(indices), 
-                    new InstallationDescription(version, downloadUrl, plugins),
-                    startTimeoutInMs);
+        /**
+         * Instead of installing new instance of elastic search, attach to existing cluster
+         */
+        public Builder useExistingInstance(String existingInstanceUrl) {
+            this.existingInstanceUrl = Optional.of(existingInstanceUrl);
+            return this;
         }
-        
+
+        public EmbeddedElastic build() {
+            ElsInstance elsInstance = createElsInstance();
+            return new EmbeddedElastic(new IndicesDescription(indices), elsInstance);
+        }
+
+        private ElsInstance createElsInstance() {
+            if (existingInstanceUrl.isPresent()) {
+                require(!version.isPresent() && !downloadUrl.isPresent() && plugins.isEmpty(),
+                        "You cannot specify version, downloadUrl and plugins when using existing instance");
+                return new ExistingElsInstance(existingInstanceUrl.get());
+            } else {
+                return new ControlledElsInstance(new InstallationDescription(version, downloadUrl, plugins, settings, startTimeoutInMs, esJavaOpts));
+            }
+        }
     }
 }
 

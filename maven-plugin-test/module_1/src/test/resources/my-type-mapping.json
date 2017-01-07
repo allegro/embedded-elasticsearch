@@ -1,0 +1,13 @@
+{
+  "my-type": {
+    "properties": {
+      "foo": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "bar": {
+        "type": "integer"
+      }
+    }
+  }
+}

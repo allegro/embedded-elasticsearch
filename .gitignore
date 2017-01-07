@@ -23,3 +23,7 @@ sonar-project.properties
 .nb-gradle
 
 /config
+/maven-plugin/pom.xml
+/maven-plugin/target
+/maven-plugin-test/target
+target

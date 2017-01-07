@@ -13,11 +13,11 @@ class InstallationDescription {
     private final String version;
     private final URL downloadUrl;
     private final List<Plugin> plugins;
+    private final InstanceSettings instanceSettings;
+    private final long startTimeoutInMs;
+    private final String esJavaOpts;
 
-    InstallationDescription(
-            Optional<String> versionMaybe,
-            Optional<URL> downloadUrlMaybe,
-            List<Plugin> plugins) {
+    InstallationDescription(Optional<String> versionMaybe, Optional<URL> downloadUrlMaybe, List<Plugin> plugins, InstanceSettings instanceSettings, long startTimeoutInMs, String esJavaOpts) {
         require(versionMaybe.isPresent() || downloadUrlMaybe.isPresent(), "You must specify elasticsearch version, or download url");
         if (versionMaybe.isPresent()) {
             this.version = versionMaybe.get();
@@ -27,10 +27,9 @@ class InstallationDescription {
             this.downloadUrl = downloadUrlMaybe.get();
         }
         this.plugins = plugins;
-    }
-
-    String getVersion() {
-        return version;
+        this.instanceSettings = instanceSettings;
+        this.startTimeoutInMs = startTimeoutInMs;
+        this.esJavaOpts = esJavaOpts;
     }
 
     URL getDownloadUrl() {
@@ -43,6 +42,18 @@ class InstallationDescription {
 
     boolean versionIs1x() {
         return version.startsWith("1.");
+    }
+
+    String getInstanceSettingsAsYaml() {
+        return instanceSettings.toYaml();
+    }
+
+    long getStartTimeoutInMs() {
+        return startTimeoutInMs;
+    }
+
+    String getEsJavaOpts() {
+        return esJavaOpts;
     }
 
     static class Plugin {
