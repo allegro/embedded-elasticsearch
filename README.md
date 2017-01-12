@@ -93,6 +93,12 @@ Maven:
 </dependency>
 ```
 
+SBT:
+
+```
+libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.1.0" % "test")
+```
+
 ## Known problems
 If you build your project on Travis, you may have problems with OOM errors when using default settings. You can change Elasticsearch memory settings using `withEsJavaOpts` method. Example (from spec `pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticSpec`):
 
