@@ -20,4 +20,5 @@ task mvnVerify(type: Exec, dependsOn: generatePom) {
     args('clean', 'verify')
 }
 
+test.dependsOn(':maven-plugin:test')
 test.dependsOn(mvnVerify)

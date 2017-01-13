@@ -57,6 +57,7 @@ task copyMetaInf(type: Copy, dependsOn: mvnProcessClasses) {
     destinationDir new File(new File(new File(project.buildDir, 'classes'), 'main'), 'META-INF')
 }
 
+compileJava.dependsOn(":core:install")
 compileJava.dependsOn(copyMetaInf)
 test.dependsOn(install)
 

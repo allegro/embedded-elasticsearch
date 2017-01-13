@@ -23,7 +23,7 @@
             <dependency>
                 <groupId>pl.allegro.tech</groupId>
                 <artifactId>embedded-elasticsearch</artifactId>
-                <version>2.1.1-SNAPSHOT</version>
+                <version>2.1.1-mvn-plugin-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -43,7 +43,7 @@
             <plugin>
                 <groupId>pl.allegro.tech</groupId>
                 <artifactId>embedded-elasticsearch-maven-plugin</artifactId>
-                <version>2.1.1-SNAPSHOT</version>
+                <version>2.1.1-mvn-plugin-SNAPSHOT</version>
                 <inherited>false</inherited>
                 <executions>
                     <execution>

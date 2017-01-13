@@ -1,11 +1,9 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
