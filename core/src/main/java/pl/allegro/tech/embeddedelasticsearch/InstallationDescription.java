@@ -2,6 +2,7 @@ package pl.allegro.tech.embeddedelasticsearch;
 
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +14,14 @@ class InstallationDescription {
     private final String version;
     private final URL downloadUrl;
     private final List<Plugin> plugins;
+    private final boolean cleanInstallationDirectoryOnStop;
+    private final Optional<File> installationDirectory;
 
     InstallationDescription(
             Optional<String> versionMaybe,
             Optional<URL> downloadUrlMaybe,
+            Optional<File> installationDirectory,
+            boolean cleanInstallationDirectoryOnStop,
             List<Plugin> plugins) {
         require(versionMaybe.isPresent() || downloadUrlMaybe.isPresent(), "You must specify elasticsearch version, or download url");
         if (versionMaybe.isPresent()) {
@@ -27,6 +32,8 @@ class InstallationDescription {
             this.downloadUrl = downloadUrlMaybe.get();
         }
         this.plugins = plugins;
+        this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
+        this.installationDirectory = installationDirectory;
     }
 
     String getVersion() {
@@ -43,6 +50,14 @@ class InstallationDescription {
 
     boolean versionIs1x() {
         return version.startsWith("1.");
+    }
+
+    boolean isCleanInstallationDirectoryOnStop() {
+        return cleanInstallationDirectoryOnStop;
+    }
+
+    Optional<File> getInstallationDirectory() {
+        return installationDirectory;
     }
 
     static class Plugin {

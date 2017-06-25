@@ -26,13 +26,15 @@ class ElasticSearchInstaller {
     private static final String ELS_PACKAGE_PREFIX = "elasticsearch-";
     private static final List<String> ELS_EXECUTABLE_FILES = Arrays.asList("elasticsearch", "elasticsearch.in.sh");
 
-    private final File baseDirectory = new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir");
+    private final File baseDirectory;
     private final InstanceSettings instanceSettings;
     private final InstallationDescription installationDescription;
 
     ElasticSearchInstaller(InstanceSettings instanceSettings, InstallationDescription installationDescription) {
         this.instanceSettings = instanceSettings;
         this.installationDescription = installationDescription;
+        this.baseDirectory = installationDescription.getInstallationDirectory()
+                .orElseGet(() -> new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir"));
     }
 
     File getExecutableFile() {

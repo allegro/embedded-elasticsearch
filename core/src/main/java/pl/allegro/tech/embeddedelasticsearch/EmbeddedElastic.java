@@ -1,19 +1,14 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
 
 import static java.util.stream.Collectors.toList;
 
@@ -32,7 +27,8 @@ public final class EmbeddedElastic {
         return new Builder();
     }
 
-    private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings, IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
+    private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings,
+            IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
         this.esJavaOpts = esJavaOpts;
         this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
@@ -56,7 +52,8 @@ public final class EmbeddedElastic {
         elasticSearchInstaller.install();
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File installationDirectory = elasticSearchInstaller.getInstallationDirectory();
-        elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, startTimeoutInMs);
+        elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, startTimeoutInMs,
+                                          installationDescription.isCleanInstallationDirectoryOnStop());
     }
 
     private void startElastic() throws IOException, InterruptedException {
@@ -193,6 +190,8 @@ public final class EmbeddedElastic {
         private InstanceSettings settings = new InstanceSettings();
         private String esJavaOpts = "";
         private long startTimeoutInMs = 15_000;
+        private boolean cleanInstallationDirectoryOnStop = true;
+        private Optional<File> installationDirectory = Optional.empty();
 
         private Builder() {
         }
@@ -201,9 +200,20 @@ public final class EmbeddedElastic {
             settings = settings.withSetting(name, value);
             return this;
         }
-        
+
         public Builder withEsJavaOpts(String javaOpts) {
             this.esJavaOpts = javaOpts;
+            return this;
+        }
+
+        public Builder withInstallationDirectory(File installationDirectory) {
+            this.installationDirectory = Optional.of(installationDirectory);
+            return this;
+        }
+
+
+        public Builder withCleanInstallationDirectoryOnStop(boolean cleanInstallationDirectoryOnStop) {
+            this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
             return this;
         }
 
@@ -262,7 +272,7 @@ public final class EmbeddedElastic {
                     esJavaOpts,
                     settings, 
                     new IndicesDescription(indices), 
-                    new InstallationDescription(version, downloadUrl, plugins),
+                    new InstallationDescription(version, downloadUrl, installationDirectory, cleanInstallationDirectoryOnStop , plugins),
                     startTimeoutInMs);
         }
         
