@@ -6,6 +6,7 @@ import spock.lang.Stepwise
 import static PopularProperties.CLUSTER_NAME
 import static PopularProperties.TRANSPORT_TCP_PORT
 import static java.util.concurrent.TimeUnit.MINUTES
+import static EmbeddedElasticConfiguration.TEST_START_TIMEOUT
 
 @Stepwise
 class CustomInstallationDirectorySpec extends Specification {
@@ -23,7 +24,7 @@ class CustomInstallationDirectorySpec extends Specification {
             .withEsJavaOpts("-Xms128m -Xmx512m")
             .withInstallationDirectory(INSTALLATION_DIRECTORY)
             .withCleanInstallationDirectoryOnStop(false)
-            .withStartTimeout(1, MINUTES)
+            .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
             .build()
 
     void setupSpec() {

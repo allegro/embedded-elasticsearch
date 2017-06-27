@@ -13,6 +13,7 @@ import static PopularProperties.CLUSTER_NAME
 import static PopularProperties.TRANSPORT_TCP_PORT
 import static java.util.concurrent.TimeUnit.MINUTES
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
+import static EmbeddedElasticConfiguration.TEST_START_TIMEOUT
 
 class EmbeddedElasticSpec extends Specification {
     
@@ -27,7 +28,7 @@ class EmbeddedElasticSpec extends Specification {
             .withEsJavaOpts("-Xms128m -Xmx512m")
             .withIndex(CARS_INDEX_NAME, CARS_INDEX)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
-            .withStartTimeout(1, MINUTES)
+            .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
             .build()
             .start()
 
