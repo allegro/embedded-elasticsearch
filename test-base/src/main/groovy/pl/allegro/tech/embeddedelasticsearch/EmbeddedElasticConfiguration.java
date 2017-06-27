@@ -5,5 +5,5 @@ package pl.allegro.tech.embeddedelasticsearch;
  */
 public interface EmbeddedElasticConfiguration {
     /** Default start timeout for test configurations. */
-    int TEST_START_TIMEOUT = 2;
+    int TEST_START_TIMEOUT = 1;
 }
