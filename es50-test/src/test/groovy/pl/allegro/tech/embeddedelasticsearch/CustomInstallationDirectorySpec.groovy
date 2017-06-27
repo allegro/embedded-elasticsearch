@@ -35,9 +35,6 @@ class CustomInstallationDirectorySpec extends Specification {
     }
     
     def "should install embedded elastic on custom directory"() {
-        setup:
-        INSTALLATION_DIRECTORY.delete()
-
         when:
         embeddedElastic.start()
 
