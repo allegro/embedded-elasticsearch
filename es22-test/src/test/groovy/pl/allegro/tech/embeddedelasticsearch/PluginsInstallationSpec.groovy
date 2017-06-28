@@ -6,6 +6,7 @@ import org.apache.http.impl.client.HttpClients
 import spock.lang.Specification
 
 import static java.util.concurrent.TimeUnit.MINUTES
+import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration.TEST_ES_JAVA_OPTS
 import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration.TEST_START_TIMEOUT
 
 class PluginsInstallationSpec extends Specification {
@@ -81,7 +82,7 @@ class PluginsInstallationSpec extends Specification {
     EmbeddedElastic.Builder baseEmbeddedElastic() {
         return EmbeddedElastic.builder()
                 .withElasticVersion("2.2.0")
-                .withEsJavaOpts("-Xms128m -Xmx512m")
+                .withEsJavaOpts(TEST_ES_JAVA_OPTS)
                 .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
                 .withSetting(PopularProperties.HTTP_PORT, HTTP_PORT_VALUE)
     }
