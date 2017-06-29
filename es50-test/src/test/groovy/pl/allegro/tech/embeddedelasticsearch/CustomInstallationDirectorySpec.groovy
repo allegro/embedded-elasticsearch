@@ -6,7 +6,7 @@ import spock.lang.Stepwise
 import static PopularProperties.CLUSTER_NAME
 import static PopularProperties.TRANSPORT_TCP_PORT
 import static java.util.concurrent.TimeUnit.MINUTES
-import static EmbeddedElasticConfiguration.TEST_START_TIMEOUT
+import static EmbeddedElasticConfiguration.START_TIMEOUT_IN_MINUTES
 import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration.TEST_ES_JAVA_OPTS
 
 @Stepwise
@@ -25,7 +25,7 @@ class CustomInstallationDirectorySpec extends Specification {
             .withEsJavaOpts(TEST_ES_JAVA_OPTS)
             .withInstallationDirectory(INSTALLATION_DIRECTORY)
             .withCleanInstallationDirectoryOnStop(false)
-            .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
+            .withStartTimeout(START_TIMEOUT_IN_MINUTES, MINUTES)
             .build()
 
     void setupSpec() {

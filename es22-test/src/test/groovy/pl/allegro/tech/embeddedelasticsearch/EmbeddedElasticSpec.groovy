@@ -14,7 +14,7 @@ import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.CLUSTER_NAME
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.TRANSPORT_TCP_PORT
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
-import static EmbeddedElasticConfiguration.TEST_START_TIMEOUT
+import static EmbeddedElasticConfiguration.START_TIMEOUT_IN_MINUTES
 
 class EmbeddedElasticSpec extends Specification {
     
@@ -29,7 +29,7 @@ class EmbeddedElasticSpec extends Specification {
             .withEsJavaOpts(TEST_ES_JAVA_OPTS)
             .withIndex(CARS_INDEX_NAME, CARS_INDEX)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
-            .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
+            .withStartTimeout(START_TIMEOUT_IN_MINUTES, MINUTES)
             .build()
             .start()
 

@@ -28,7 +28,7 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.FIAT_126p
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.toJson
-import static EmbeddedElasticConfiguration.TEST_START_TIMEOUT
+import static EmbeddedElasticConfiguration.START_TIMEOUT_IN_MINUTES
 
 class EmbeddedElasticSpec extends Specification {
 
@@ -43,7 +43,7 @@ class EmbeddedElasticSpec extends Specification {
             .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
             .withIndex(CARS_INDEX_NAME, CARS_INDEX)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
-            .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
+            .withStartTimeout(START_TIMEOUT_IN_MINUTES, MINUTES)
             .build()
             .start()
 
