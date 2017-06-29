@@ -23,6 +23,7 @@ class ElasticServer {
     private final File installationDirectory;
     private final File executableFile;
     private final long startTimeoutInMs;
+    private final boolean cleanInstallationDirectoryOnStop;
 
     private boolean started;
     private final Object startedLock = new Object();
@@ -33,11 +34,12 @@ class ElasticServer {
     private volatile int httpPort = -1;
     private volatile int transportTcpPort = -1;
 
-    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs) {
+    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop) {
         this.esJavaOpts = esJavaOpts;
         this.installationDirectory = installationDirectory;
         this.executableFile = executableFile;
         this.startTimeoutInMs = startTimeoutInMs;
+        this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
     }
 
     void start() throws IOException, InterruptedException {
@@ -191,8 +193,10 @@ class ElasticServer {
     }
 
     private void finalizeClose() {
-        logger.info("Removing installation directory...");
-        deleteInstallationDirectory();
+        if (this.cleanInstallationDirectoryOnStop) {
+            logger.info("Removing installation directory...");
+            deleteInstallationDirectory();
+        }
         logger.info("Finishing...");
         started = false;
     }

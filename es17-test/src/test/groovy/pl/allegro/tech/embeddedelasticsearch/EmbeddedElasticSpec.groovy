@@ -14,6 +14,7 @@ import static SampleIndices.AudioBook
 import static SampleIndices.Car
 import static SampleIndices.PaperBook
 import static java.util.concurrent.TimeUnit.MINUTES
+import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration.TEST_ES_JAVA_OPTS
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.CLUSTER_NAME
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.TRANSPORT_TCP_PORT
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.AMERICAN_PSYCHO
@@ -27,6 +28,7 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.FIAT_126p
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.toJson
+import static EmbeddedElasticConfiguration.TEST_START_TIMEOUT
 
 class EmbeddedElasticSpec extends Specification {
 
@@ -36,12 +38,12 @@ class EmbeddedElasticSpec extends Specification {
 
     static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
-            .withEsJavaOpts("-Xms128m -Xmx512m")
+            .withEsJavaOpts(TEST_ES_JAVA_OPTS)
             .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
             .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
             .withIndex(CARS_INDEX_NAME, CARS_INDEX)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
-            .withStartTimeout(1, MINUTES)
+            .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
             .build()
             .start()
 

@@ -12,7 +12,9 @@ import spock.lang.Specification
 import static PopularProperties.CLUSTER_NAME
 import static PopularProperties.TRANSPORT_TCP_PORT
 import static java.util.concurrent.TimeUnit.MINUTES
+import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration.TEST_ES_JAVA_OPTS
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
+import static EmbeddedElasticConfiguration.TEST_START_TIMEOUT
 
 class EmbeddedElasticSpec extends Specification {
     
@@ -24,10 +26,10 @@ class EmbeddedElasticSpec extends Specification {
             .withElasticVersion(ELASTIC_VERSION)
             .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
             .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
-            .withEsJavaOpts("-Xms128m -Xmx512m")
+            .withEsJavaOpts(TEST_ES_JAVA_OPTS)
             .withIndex(CARS_INDEX_NAME, CARS_INDEX)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
-            .withStartTimeout(1, MINUTES)
+            .withStartTimeout(TEST_START_TIMEOUT, MINUTES)
             .build()
             .start()
 

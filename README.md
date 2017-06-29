@@ -45,6 +45,8 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withPlugin(String expression)` | plugin that should be installed into Elasticsearch; treat expression as argument to `./elasticsearch-plugin install <expression>` command; use multiple times for multiple plugins |
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
 | `withStartTimeout(long value, TimeUnit unit)` | specify timeout you give Elasticsearch to start |
+| `withInstallationDirectory(File installationDirectory)` | specify custom installation directory |
+| `withCleanInstallationDirectoryOnStop(boolean cleanInstallationDirectoryOnStop)` | specify whether clean the installation directory after Elasticsearch stop |
 | `withEsJavaOpts(String javaOpts)` | value of `ES_JAVA_OPTS` variable to be set for Elasticsearch process |
 | `getTransportTcpPort()` | get transport tcp port number used by Elasticsearch instance |
 | `getHttpPort()` | get http port number used by Elasticsearch instance |
