@@ -10,7 +10,7 @@ class IndicesDescription {
     IndicesDescription(Map<String, IndexSettings> indices) {
         this.indices = indices;
     }
-    
+
     Collection<String> getIndicesNames() {
         return indices.keySet();
     }

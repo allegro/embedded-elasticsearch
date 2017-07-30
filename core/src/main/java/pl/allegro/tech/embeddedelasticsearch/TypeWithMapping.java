@@ -1,14 +1,14 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 
 public class TypeWithMapping {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    
+
     private final String type;
     private final JsonNode mapping;
 

@@ -1,18 +1,18 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 class InstanceSettings {
 
     private final ObjectMapper yamlObjectMapper = new ObjectMapper(new YAMLFactory());
     private final Map<String, Object> settings;
-    
+
     InstanceSettings() {
         this(Collections.emptyMap());
     }
@@ -20,7 +20,7 @@ class InstanceSettings {
     InstanceSettings(Map<String, Object> settings) {
         this.settings = Collections.unmodifiableMap(settings);
     }
-    
+
     InstanceSettings withSetting(String key, Object value) {
         Map<String, Object> extendedSettings = new HashMap<>();
         extendedSettings.putAll(settings);

@@ -1,15 +1,15 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
@@ -95,7 +95,7 @@ class ElasticServer {
     private void installExitHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop, "ElsInstanceCleaner"));
     }
-    
+
     private String elasticExecutable() {
         return executableFile.getAbsolutePath();
     }
@@ -151,7 +151,7 @@ class ElasticServer {
         httpPort = Integer.parseInt(matcher.group(1));
         logger.info("Detected Elasticsearch http port : " + httpPort);
     }
-    
+
     private void tryExtractTransportTcpPort(String line) {
         Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+).?\\}").matcher(line);
         isTrue(matcher.find());

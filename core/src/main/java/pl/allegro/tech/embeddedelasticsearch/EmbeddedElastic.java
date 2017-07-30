@@ -6,7 +6,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -28,7 +33,7 @@ public final class EmbeddedElastic {
     }
 
     private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings,
-            IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
+                            IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
         this.esJavaOpts = esJavaOpts;
         this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
@@ -53,7 +58,7 @@ public final class EmbeddedElastic {
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File installationDirectory = elasticSearchInstaller.getInstallationDirectory();
         elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, startTimeoutInMs,
-                                          installationDescription.isCleanInstallationDirectoryOnStop());
+                installationDescription.isCleanInstallationDirectoryOnStop());
     }
 
     private void startElastic() throws IOException, InterruptedException {
@@ -75,6 +80,7 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index type
      * @param idJsonMap map where keys are documents ids and values are documents represented as JSON
@@ -87,9 +93,10 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index name
-     * @param json document represented as JSON
+     * @param json      document represented as JSON
      */
     public void index(String indexName, String indexType, String... json) {
         index(indexName, indexType, Arrays.asList(json));
@@ -97,9 +104,10 @@ public final class EmbeddedElastic {
 
     /**
      * Index documents
+     *
      * @param indexName target index
      * @param indexType target index name
-     * @param jsons documents represented as JSON
+     * @param jsons     documents represented as JSON
      */
     public void index(String indexName, String indexType, List<CharSequence> jsons) {
         elasticRestClient.indexWithIds(indexName, indexType, jsons.stream().map(json -> new DocumentWithId(null, json.toString())).collect(Collectors.toList()));
@@ -115,6 +123,7 @@ public final class EmbeddedElastic {
 
     /**
      * Recreates specified index (i.e. deletes and creates it again)
+     *
      * @param indexName index to recreate
      */
     public void recreateIndex(String indexName) {
@@ -131,6 +140,7 @@ public final class EmbeddedElastic {
 
     /**
      * Delete specified index
+     *
      * @param indexName index do delete
      */
     public void deleteIndex(String indexName) {
@@ -146,6 +156,7 @@ public final class EmbeddedElastic {
 
     /**
      * Create specified index. Note that you can specify only index from list of indices specified during EmbeddedElastic creation
+     *
      * @param indexName index to create
      */
     public void createIndex(String indexName) {
@@ -161,6 +172,7 @@ public final class EmbeddedElastic {
 
     /**
      * Fetch all documents from specified indices. Useful for logging and debugging
+     *
      * @return list containing documents sources represented as JSON
      */
     public List<String> fetchAllDocuments(String... indices) throws UnknownHostException {
@@ -236,7 +248,7 @@ public final class EmbeddedElastic {
 
         /**
          * Plugin that should be installed with created instance. Treat invocation of this method as invocation of elasticsearch-plugin install command:
-         * 
+         * <p>
          * <pre>./elasticsearch-plugin install EXPRESSION</pre>
          */
         public Builder withPlugin(String expression) {
@@ -270,12 +282,12 @@ public final class EmbeddedElastic {
         public EmbeddedElastic build() {
             return new EmbeddedElastic(
                     esJavaOpts,
-                    settings, 
-                    new IndicesDescription(indices), 
-                    new InstallationDescription(version, downloadUrl, installationDirectory, cleanInstallationDirectoryOnStop , plugins),
+                    settings,
+                    new IndicesDescription(indices),
+                    new InstallationDescription(version, downloadUrl, installationDirectory, cleanInstallationDirectoryOnStop, plugins),
                     startTimeoutInMs);
         }
-        
+
     }
 }
 

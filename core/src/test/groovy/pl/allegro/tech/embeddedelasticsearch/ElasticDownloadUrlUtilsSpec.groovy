@@ -69,25 +69,25 @@ class ElasticDownloadUrlUtilsSpec extends Specification {
         then:
             constructedLocalFileName ==~ /\w{10}/
     }
-    
+
     def "should throw exception on version with path traversal"() {
         given:
             final versionWithPathTraversal = "../../etc/shadow"
-        
+
         when:
             ElasticDownloadUrlUtils.urlFromVersion(versionWithPathTraversal)
-        
+
         then:
             thrown(IllegalArgumentException)
     }
-    
+
     def "constructLocalFileName should be immune to null byte injection"() {
         given:
             final urlWithNullByte = "http://example.com/\0file.txt"
-        
+
         when:
             ElasticDownloadUrlUtils.constructLocalFileName(new URL(urlWithNullByte))
-        
+
         then:
             thrown(IllegalArgumentException)
     }

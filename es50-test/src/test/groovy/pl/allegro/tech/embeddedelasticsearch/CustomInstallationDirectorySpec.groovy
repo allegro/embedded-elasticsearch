@@ -3,15 +3,15 @@ package pl.allegro.tech.embeddedelasticsearch
 import spock.lang.Specification
 import spock.lang.Stepwise
 
+import static EmbeddedElasticConfiguration.START_TIMEOUT_IN_MINUTES
 import static PopularProperties.CLUSTER_NAME
 import static PopularProperties.TRANSPORT_TCP_PORT
 import static java.util.concurrent.TimeUnit.MINUTES
-import static EmbeddedElasticConfiguration.START_TIMEOUT_IN_MINUTES
 import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration.TEST_ES_JAVA_OPTS
 
 @Stepwise
 class CustomInstallationDirectorySpec extends Specification {
-    
+
     static final ELASTIC_VERSION = "5.4.0"
     static final TRANSPORT_TCP_PORT_VALUE = 9930
     static final CLUSTER_NAME_VALUE = "customDirectoryTestCluster"
@@ -35,7 +35,7 @@ class CustomInstallationDirectorySpec extends Specification {
     def cleanupSpec() {
         INSTALLATION_DIRECTORY.deleteDir()
     }
-    
+
     def "should install embedded elastic on custom directory"() {
         when:
             embeddedElastic.start()

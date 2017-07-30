@@ -47,6 +47,8 @@ class SampleIndices {
         """
     }
     static PaperBook SHINING = new PaperBook(author: "Stephen King", title: "Shining", description: "book about overlook hotel")
+    static PaperBook CUJO = new PaperBook(author: "Stephen King", title: "Cujo", description: "book about mad dog")
+    static PaperBook MISERY = new PaperBook(author: "Stephen King", title: "Misery", description: "book about insane woman that imprisoned favourite writer")
 
     static String toJson(AudioBook book) {
         """
