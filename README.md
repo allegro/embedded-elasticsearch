@@ -46,6 +46,7 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
 | `withStartTimeout(long value, TimeUnit unit)` | specify timeout you give Elasticsearch to start |
 | `withInstallationDirectory(File installationDirectory)` | specify custom installation directory |
+| `withDownloadDirectory(File downloadDirectory)` | specify custom download directory where downloaded distribution paackages will be saved |
 | `withCleanInstallationDirectoryOnStop(boolean cleanInstallationDirectoryOnStop)` | specify whether clean the installation directory after Elasticsearch stop |
 | `withEsJavaOpts(String javaOpts)` | value of `ES_JAVA_OPTS` variable to be set for Elasticsearch process |
 | `getTransportTcpPort()` | get transport tcp port number used by Elasticsearch instance |
