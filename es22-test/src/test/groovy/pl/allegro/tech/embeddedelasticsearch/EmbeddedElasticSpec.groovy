@@ -13,7 +13,7 @@ import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.CLUSTER_NA
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.TRANSPORT_TCP_PORT
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
-class EmbeddedElasticSpec extends EmbeddedElasticBaseSpec {
+class EmbeddedElasticSpec extends EmbeddedElasticMultiIndexTypeBaseSpec {
 
     static final ELASTIC_VERSION = "2.2.0"
     static final TRANSPORT_TCP_PORT_VALUE = 9930
@@ -25,7 +25,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticBaseSpec {
             .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
             .withEsJavaOpts(TEST_ES_JAVA_OPTS)
             .withIndex(CARS_INDEX_NAME, CARS_INDEX)
-            .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
+            .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX_MULTI_TYPE)
             .withStartTimeout(START_TIMEOUT_IN_MINUTES, MINUTES)
             .build()
             .start()
@@ -42,10 +42,10 @@ class EmbeddedElasticSpec extends EmbeddedElasticBaseSpec {
     }
 
     static Client createClient() {
-        Settings settings = Settings.settingsBuilder().put("cluster.name", CLUSTER_NAME_VALUE).build();
-        TransportClient client = TransportClient.builder().settings(settings).build();
-        client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), TRANSPORT_TCP_PORT_VALUE));
-        return client;
+        Settings settings = Settings.settingsBuilder().put("cluster.name", CLUSTER_NAME_VALUE).build()
+        TransportClient client = TransportClient.builder().settings(settings).build()
+        client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), TRANSPORT_TCP_PORT_VALUE))
+        return client
     }
 
     @Override

@@ -3,6 +3,7 @@ package pl.allegro.tech.embeddedelasticsearch;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -10,6 +11,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +92,7 @@ class ElasticRestClient {
                 .collect(joining("\n")) + "\n";
 
         HttpPost request = new HttpPost(url("/" + indexName + "/" + indexType + "/_bulk"));
+        request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
         request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
         CloseableHttpResponse response = httpClient.execute(request);
         assertOk(response, "Request finished with error");
