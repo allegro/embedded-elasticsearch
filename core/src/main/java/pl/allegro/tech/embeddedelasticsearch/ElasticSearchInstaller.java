@@ -138,8 +138,8 @@ class ElasticSearchInstaller {
     }
 
     private boolean maybeDownloading(final File target) {
-        // Poor mans check based on assumption that if other process downloads e file should be modified
-        // at least every 10 seconds as new data being downloaded. This will not work on file system
+        // Check based on assumption that if other thread or jvm is currently downloading file on disk should be modified
+        // at least every 10 seconds as new data is being downloaded. This will not work on file system
         // without support for lastmodified field or on very slow internet connection
         return System.currentTimeMillis() - target.lastModified() < TimeUnit.SECONDS.toMillis(10L);
     }
