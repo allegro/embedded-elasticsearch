@@ -49,14 +49,14 @@ class ElasticSearchInstaller {
     }
 
     void install() throws IOException, InterruptedException {
-        prepareDirectoryies();
+        prepareDirectories();
         installElastic();
         configureElastic();
         installPlugins();
         applyElasticPermissionRights();
     }
 
-    private void prepareDirectoryies() throws IOException {
+    private void prepareDirectories() throws IOException {
         forceMkdir(getInstallationDirectory());
         forceMkdir(getDownloadDirectory());
     }
