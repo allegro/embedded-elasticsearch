@@ -13,7 +13,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery
 import static pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticConfiguration.TEST_ES_JAVA_OPTS
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
-class EmbeddedElasticSpec extends EmbeddedElasticMultiIndexTypeBaseSpec {
+class EmbeddedElasticSpec extends EmbeddedElasticCoreApiVersions5AndUnder {
 
     static final ELASTIC_VERSION = "5.0.0"
     static final TRANSPORT_TCP_PORT_VALUE = 9930

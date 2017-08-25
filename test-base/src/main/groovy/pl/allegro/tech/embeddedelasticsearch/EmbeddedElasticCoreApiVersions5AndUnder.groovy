@@ -7,7 +7,7 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_IND
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.toJson
 
-abstract class EmbeddedElasticMultiIndexTypeBaseSpec extends EmbeddedElasticCoreApiBaseSpec {
+abstract class EmbeddedElasticCoreApiVersions5AndUnder extends EmbeddedElasticCoreApiBaseSpec {
 
     def "should place document under right index and type"() {
         when:

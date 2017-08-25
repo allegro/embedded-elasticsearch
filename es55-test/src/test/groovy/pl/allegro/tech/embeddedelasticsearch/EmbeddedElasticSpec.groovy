@@ -11,7 +11,7 @@ import static java.util.concurrent.TimeUnit.MINUTES
 import static org.elasticsearch.index.query.QueryBuilders.termQuery
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
-class EmbeddedElasticSpec extends EmbeddedElasticMultiIndexTypeBaseSpec {
+class EmbeddedElasticSpec extends EmbeddedElasticCoreApiVersions5AndUnder {
 
     static final ELASTIC_VERSION = "5.5.1"
     static final TRANSPORT_TCP_PORT_VALUE = 9930

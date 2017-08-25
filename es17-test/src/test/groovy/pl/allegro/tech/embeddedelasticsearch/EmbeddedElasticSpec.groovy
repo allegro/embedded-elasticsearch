@@ -14,7 +14,7 @@ import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.CLUSTER_NA
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.TRANSPORT_TCP_PORT
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
 
-class EmbeddedElasticSpec extends EmbeddedElasticMultiIndexTypeBaseSpec {
+class EmbeddedElasticSpec extends EmbeddedElasticCoreApiVersions5AndUnder {
 
     static final ELASTIC_VERSION = "1.7.5"
     static final TRANSPORT_TCP_PORT_VALUE = 9930
