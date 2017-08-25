@@ -189,7 +189,7 @@ class ElasticServer {
     }
 
     private void stopSystemV() throws IOException {
-        Runtime.getRuntime().exec("kill -SIGINT " + pid);
+        Runtime.getRuntime().exec("kill " + pid);
     }
 
     private void finalizeClose() {
