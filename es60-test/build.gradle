@@ -1,0 +1,14 @@
+repositories {
+    mavenCentral()
+    maven {
+        url "http://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/00142c9"
+    }
+}
+dependencies {
+    testCompile project(':test-base')
+
+    testCompile group: 'org.elasticsearch', name: 'elasticsearch', version: '6.0.0-beta1'
+    testCompile group: 'org.elasticsearch.client', name: 'transport', version: '6.0.0-beta1'
+    testCompile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.6.2'
+    testCompile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.6.2'
+}

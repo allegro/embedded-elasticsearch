@@ -6,10 +6,6 @@ import static java.lang.ClassLoader.getSystemResourceAsStream
 
 class SampleIndices {
 
-    static final EMPTY_INDEX_NAME = "empty"
-    static final EMPTY_INDEX = IndexSettings.builder()
-            .build()
-
     static final CARS_INDEX_NAME = "cars"
     static final CAR_INDEX_TYPE = "car"
     static final CARS_INDEX = IndexSettings.builder()
@@ -20,9 +16,14 @@ class SampleIndices {
     static final BOOKS_INDEX_NAME = "books"
     static final PAPER_BOOK_INDEX_TYPE = "paper_book"
     static final AUDIO_BOOK_INDEX_TYPE = "audio_book"
-    static final BOOKS_INDEX = IndexSettings.builder()
+    static final BOOKS_INDEX_MULTI_TYPE = IndexSettings.builder()
             .withType(PAPER_BOOK_INDEX_TYPE, getSystemResourceAsStream("paper-book-mapping.json"))
             .withType("audio_book", getSystemResourceAsStream("audio-book-mapping.json"))
+            .withSettings(getSystemResourceAsStream("elastic-settings.json"))
+            .build()
+
+    static final BOOKS_INDEX = IndexSettings.builder()
+            .withType(PAPER_BOOK_INDEX_TYPE, getSystemResourceAsStream("paper-book-mapping.json"))
             .withSettings(getSystemResourceAsStream("elastic-settings.json"))
             .build()
 
