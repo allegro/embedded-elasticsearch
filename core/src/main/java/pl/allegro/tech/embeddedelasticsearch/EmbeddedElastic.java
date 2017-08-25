@@ -204,6 +204,7 @@ public final class EmbeddedElastic {
         private long startTimeoutInMs = 15_000;
         private boolean cleanInstallationDirectoryOnStop = true;
         private Optional<File> installationDirectory = Optional.empty();
+        private Optional<File> downloadDirectory = Optional.empty();
 
         private Builder() {
         }
@@ -223,6 +224,10 @@ public final class EmbeddedElastic {
             return this;
         }
 
+        public Builder withDownloadDirectory(File downloadDirectory) {
+            this.downloadDirectory = Optional.of(downloadDirectory);
+            return this;
+        }
 
         public Builder withCleanInstallationDirectoryOnStop(boolean cleanInstallationDirectoryOnStop) {
             this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
@@ -284,7 +289,7 @@ public final class EmbeddedElastic {
                     esJavaOpts,
                     settings,
                     new IndicesDescription(indices),
-                    new InstallationDescription(version, downloadUrl, installationDirectory, cleanInstallationDirectoryOnStop, plugins),
+                    new InstallationDescription(version, downloadUrl, downloadDirectory, installationDirectory, cleanInstallationDirectoryOnStop, plugins),
                     startTimeoutInMs);
         }
 

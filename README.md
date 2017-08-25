@@ -46,6 +46,7 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
 | `withStartTimeout(long value, TimeUnit unit)` | specify timeout you give Elasticsearch to start |
 | `withInstallationDirectory(File installationDirectory)` | specify custom installation directory |
+| `withDownloadDirectory(File downloadDirectory)` | specify custom download directory where downloaded distribution packages will be saved |
 | `withCleanInstallationDirectoryOnStop(boolean cleanInstallationDirectoryOnStop)` | specify whether clean the installation directory after Elasticsearch stop |
 | `withEsJavaOpts(String javaOpts)` | value of `ES_JAVA_OPTS` variable to be set for Elasticsearch process |
 | `getTransportTcpPort()` | get transport tcp port number used by Elasticsearch instance |
@@ -116,6 +117,23 @@ If you build your project on Travis, you may have problems with OOM errors when 
             .build()
             .start()
 ```
+
+## Running more then one Elasticsearch instance
+
+There are cases where you might want to run more then one Elasticsearch instance e.g.:
+- running tests of one project in parallel (e.g. using _gradle --parallel_ or _mvn -T1C_)
+- running tests of different projects on the same physical mashine (e.g. Jenkins jobs running on the same server)
+- running integration tests wich require more then elastic search instance
+
+In such situations you should use distinct values for following settings for each instance:
+
+- `withSetting(PopularProperties.TRANSPORT_TCP_PORT, ...)`
+- `withSetting(PopularProperties.HTTP_PORT, ...)`
+- `withInstallationDirectory(...)`
+
+With such configuration *embedded-elasticsearch* will redonload elasticsearch instllation package for every distinct
+instalation directory. To avoid whis behavior and thus reuse downloaded installation package you should
+set common location of downloaded files with `withDownloadDirectory(...)` for every *embedded-elasticsearch* configuration.
 
 ## License
 

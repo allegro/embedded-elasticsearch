@@ -13,6 +13,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.forceMkdir;
@@ -23,18 +24,16 @@ import static pl.allegro.tech.embeddedelasticsearch.ElasticDownloadUrlUtils.cons
 class ElasticSearchInstaller {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchInstaller.class);
+    private static final String ELS_PACKAGE_STATUS_FILE_SUFFIX = "-downloaded";
     private static final String ELS_PACKAGE_PREFIX = "elasticsearch-";
     private static final List<String> ELS_EXECUTABLE_FILES = Arrays.asList("elasticsearch", "elasticsearch.in.sh");
 
-    private final File baseDirectory;
     private final InstanceSettings instanceSettings;
     private final InstallationDescription installationDescription;
 
     ElasticSearchInstaller(InstanceSettings instanceSettings, InstallationDescription installationDescription) {
         this.instanceSettings = instanceSettings;
         this.installationDescription = installationDescription;
-        this.baseDirectory = installationDescription.getInstallationDirectory()
-                .orElseGet(() -> new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir"));
     }
 
     File getExecutableFile() {
@@ -42,19 +41,24 @@ class ElasticSearchInstaller {
     }
 
     File getInstallationDirectory() {
-        return getFile(baseDirectory, ELS_PACKAGE_PREFIX + installationDescription.getVersion());
+        return getFile(installationDescription.getInstallationDirectory(), ELS_PACKAGE_PREFIX + installationDescription.getVersion());
+    }
+
+    File getDownloadDirectory() {
+        return getFile(installationDescription.getDownloadDirectory());
     }
 
     void install() throws IOException, InterruptedException {
-        prepareDirectory();
+        prepareDirectories();
         installElastic();
         configureElastic();
         installPlugins();
         applyElasticPermissionRights();
     }
 
-    private void prepareDirectory() throws IOException {
-        forceMkdir(baseDirectory);
+    private void prepareDirectories() throws IOException {
+        forceMkdir(getInstallationDirectory());
+        forceMkdir(getDownloadDirectory());
     }
 
     private void installElastic() throws IOException {
@@ -109,19 +113,58 @@ class ElasticSearchInstaller {
     }
 
     private Path download(URL source) throws IOException {
-        File target = new File(baseDirectory, constructLocalFileName(source));
+        File target = new File(getDownloadDirectory(), constructLocalFileName(source));
+        File statusFile = new File(target.getParentFile(), target.getName() + ELS_PACKAGE_STATUS_FILE_SUFFIX);
+
+        removeBrokenDownload(target, statusFile);
+
         if (!target.exists()) {
-            logger.info("Downloading : " + source + " to " + target + "...");
-            FileUtils.copyURLToFile(source, target);
-            logger.info("Download complete");
+            download(source, target, statusFile);
+        } else if (!statusFile.exists() && maybeDownloading(target)) {
+            waitForDownload(target, statusFile);
+        } else if (!statusFile.exists()) {
+            throw new IOException("Broken download. File '"  + target + "' exits but status '" + statusFile + "' file wash not created");
         } else {
             logger.info("Download skipped");
         }
         return target.toPath();
     }
 
+    private void removeBrokenDownload(final File target, final File statusFile) throws IOException {
+        if (target.exists() && !statusFile.exists() && !maybeDownloading(target)) {
+            logger.info("Removing broken download file {}", target);
+            FileUtils.forceDelete(target);
+        }
+    }
+
+    private boolean maybeDownloading(final File target) {
+        // Check based on assumption that if other thread or jvm is currently downloading file on disk should be modified
+        // at least every 10 seconds as new data is being downloaded. This will not work on file system
+        // without support for lastmodified field or on very slow internet connection
+        return System.currentTimeMillis() - target.lastModified() < TimeUnit.SECONDS.toMillis(10L);
+    }
+
+    private void download(final URL source, final File target, final File statusFile) throws IOException {
+        logger.info("Downloading {} to {} ...", source, target);
+        FileUtils.copyURLToFile(source, target);
+        FileUtils.touch(statusFile);
+        logger.info("Download complete");
+    }
+
+    private void waitForDownload(final File target, final File statusFile) throws IOException {
+        boolean downloaded;
+        do {
+            logger.info("File {} (size={}) is probably being downloaded by another thread/jvm. Waiting ...", target, target.length());
+            downloaded = FileUtils.waitFor(statusFile, 30);
+        } while (!downloaded && maybeDownloading(target));
+        if (!downloaded) {
+            throw new IOException("Broken download. Another party probably failed to download " + target);
+        }
+        logger.info("File was downloaded by another thread/jvm. Download skipped");
+    }
+
     private void install(String what, String relativePath, Path downloadedFile) throws IOException {
-        Path destination = new File(baseDirectory, relativePath).toPath();
+        Path destination = new File(getInstallationDirectory().getParentFile(), relativePath).toPath();
         logger.info("Installing " + what + " into " + destination + "...");
         try {
             ZipFile zipFile = new ZipFile(downloadedFile.toString());
@@ -137,7 +180,7 @@ class ElasticSearchInstaller {
         if (IS_OS_WINDOWS) {
             return;
         }
-        File binDirectory = getFile(baseDirectory, ELS_PACKAGE_PREFIX + installationDescription.getVersion(), "bin");
+        File binDirectory = getFile(getInstallationDirectory(), "bin");
         for (String fn : ELS_EXECUTABLE_FILES) {
             setExecutable(new File(binDirectory, fn));
         }

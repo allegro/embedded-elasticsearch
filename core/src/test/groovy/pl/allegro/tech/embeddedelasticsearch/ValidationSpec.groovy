@@ -1,5 +1,6 @@
 package pl.allegro.tech.embeddedelasticsearch
 
+import org.apache.commons.io.FileUtils
 import spock.lang.Specification
 
 import static java.util.concurrent.TimeUnit.MINUTES
@@ -40,6 +41,25 @@ class ValidationSpec extends Specification {
                     .build()
                     .start()
                     .stop()
+        then:
+            noExceptionThrown()
+    }
+
+    def "should construct embedded elastic with minimal required arguments and custom download and install directory"() {
+        when:
+            def uniqId = UUID.randomUUID().toString();
+            def installDir = new File(FileUtils.tempDirectory, "$uniqId-install")
+            def downloadDir = new File(FileUtils.tempDirectory, "$uniqId-download")
+            EmbeddedElastic.builder()
+                    .withDownloadUrl(ELASTIC_DOWNLOAD_URL)
+                    .withStartTimeout(TEST_START_TIMEOUT_IN_MINUTES, MINUTES)
+                    .withDownloadDirectory(downloadDir)
+                    .withInstallationDirectory(installDir)
+                    .build()
+                    .start()
+                    .stop()
+            FileUtils.deleteDirectory(installDir)
+            FileUtils.deleteDirectory(downloadDir)
         then:
             noExceptionThrown()
     }

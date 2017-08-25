@@ -1,25 +1,32 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import org.apache.commons.io.FilenameUtils;
+import static org.apache.commons.io.FileUtils.getFile;
 
 import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
+import org.apache.commons.io.FilenameUtils;
 
 import static pl.allegro.tech.embeddedelasticsearch.Require.require;
 
 class InstallationDescription {
 
+    private static final Supplier<File> DEFAULT_INSTALL_DIR = () -> new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir");
+    private static final Supplier<File> DEFAULT_DOWNLOAD_DIR = DEFAULT_INSTALL_DIR;
+
     private final String version;
     private final URL downloadUrl;
     private final List<Plugin> plugins;
     private final boolean cleanInstallationDirectoryOnStop;
-    private final Optional<File> installationDirectory;
+    private final File installationDirectory;
+    private final File downloadDirectory;
 
     InstallationDescription(
             Optional<String> versionMaybe,
             Optional<URL> downloadUrlMaybe,
+            Optional<File> downloadDirectory,
             Optional<File> installationDirectory,
             boolean cleanInstallationDirectoryOnStop,
             List<Plugin> plugins) {
@@ -33,7 +40,8 @@ class InstallationDescription {
         }
         this.plugins = plugins;
         this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
-        this.installationDirectory = installationDirectory;
+        this.installationDirectory = getFile(installationDirectory.orElseGet(DEFAULT_INSTALL_DIR));
+        this.downloadDirectory = getFile(downloadDirectory.orElseGet(DEFAULT_DOWNLOAD_DIR));
     }
 
     String getVersion() {
@@ -56,8 +64,12 @@ class InstallationDescription {
         return cleanInstallationDirectoryOnStop;
     }
 
-    Optional<File> getInstallationDirectory() {
+    File getInstallationDirectory() {
         return installationDirectory;
+    }
+
+    public File getDownloadDirectory() {
+        return downloadDirectory;
     }
 
     static class Plugin {
