@@ -3,7 +3,7 @@
 ![build status](https://travis-ci.org/allegro/embedded-elasticsearch.svg?branch=master)
 ![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.allegro.tech/embedded-elasticsearch/badge.svg)
 
-Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x and 5.x versions of Elasticsearch.
+Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x, 5.x and 6.x.beta versions of Elasticsearch.
 
 ## Introduction
 
