@@ -177,20 +177,10 @@ class ElasticServer {
     }
 
     private void stopElasticGracefully() throws IOException {
-        if (SystemUtils.IS_OS_WINDOWS) {
-            stopWindows();
-        } else {
-            stopSystemV();
-        }
+        elastic.destroy();
     }
 
-    private void stopWindows() throws IOException {
-        Runtime.getRuntime().exec("taskkill /f /pid " + pid);
-    }
 
-    private void stopSystemV() throws IOException {
-        Runtime.getRuntime().exec("kill " + pid);
-    }
 
     private void finalizeClose() {
         if (this.cleanInstallationDirectoryOnStop) {
