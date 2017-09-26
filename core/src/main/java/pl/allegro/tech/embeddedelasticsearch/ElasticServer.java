@@ -81,7 +81,7 @@ class ElasticServer {
                 }
                 BufferedReader outputStream = new BufferedReader(new InputStreamReader(elastic.getInputStream(), UTF_8));
                 String line;
-                while ((line = outputStream.readLine()) != null) {
+                while ((line = readLine(outputStream)) != null) {
                     logger.info(line);
                     parseElasticLogLine(line);
                 }
@@ -90,6 +90,15 @@ class ElasticServer {
             }
         }, "EmbeddedElsHandler");
         ownerThread.start();
+    }
+
+    private String readLine(BufferedReader outputStream) {
+        try {
+            return outputStream.readLine();
+        } catch (IOException e) {
+            // TODO: catching all types of IOException is not clean, any better solution?
+            return null;
+        }
     }
 
     private void installExitHook() {
