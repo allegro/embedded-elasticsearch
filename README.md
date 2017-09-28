@@ -92,7 +92,7 @@ Maven:
     <groupId>pl.allegro.tech</groupId>
     <artifactId>embedded-elasticsearch</artifactId>
     <version>2.1.0</version>
-    <scope>testCompile</scope>
+    <scope>test</scope>
 </dependency>
 ```
 
