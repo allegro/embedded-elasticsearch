@@ -11,8 +11,9 @@ import static java.util.concurrent.TimeUnit.MINUTES
 import static org.elasticsearch.index.query.QueryBuilders.termQuery
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.getBOOKS_INDEX
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.getBOOKS_INDEX_NAME
-import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.getCARS_INDEX
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.getCARS_INDEX_NAME
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.getCARS_TEMPLATE_NAME
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.getCARS_TEMPLATE_6x
 
 class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
@@ -25,7 +26,8 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
             .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
             .withSetting(CLUSTER_NAME, CLUSTER_NAME_VALUE)
             .withEsJavaOpts("-Xms128m -Xmx512m")
-            .withIndex(CARS_INDEX_NAME, CARS_INDEX)
+            .withTemplate(CARS_TEMPLATE_NAME, CARS_TEMPLATE_6x)
+            .withIndex(CARS_INDEX_NAME)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
             .withStartTimeout(1, MINUTES)
             .build()

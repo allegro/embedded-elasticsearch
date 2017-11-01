@@ -2,12 +2,13 @@ package pl.allegro.tech.embeddedelasticsearch;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 class IndicesDescription {
 
-    private final Map<String, IndexSettings> indices;
+    private final Map<String, Optional<IndexSettings>> indices;
 
-    IndicesDescription(Map<String, IndexSettings> indices) {
+    IndicesDescription(Map<String, Optional<IndexSettings>> indices) {
         this.indices = indices;
     }
 
@@ -15,7 +16,7 @@ class IndicesDescription {
         return indices.keySet();
     }
 
-    IndexSettings getIndexSettings(String indexName) {
+    Optional<IndexSettings> getIndexSettings(String indexName) {
         return indices.get(indexName);
     }
 }

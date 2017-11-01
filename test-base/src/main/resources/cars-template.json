@@ -1,0 +1,20 @@
+{
+  "template": "car*",
+  "mappings":{
+    "car": {
+      "properties": {
+        "manufacturer": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "model": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

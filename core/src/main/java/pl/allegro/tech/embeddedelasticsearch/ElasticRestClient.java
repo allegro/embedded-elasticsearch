@@ -35,11 +35,13 @@ class ElasticRestClient {
     private int elasticsearchHttpPort;
     private final HttpClient httpClient;
     private final IndicesDescription indicesDescription;
+    private final TemplatesDescription templatesDescription;
 
-    ElasticRestClient(int elasticsearchHttpPort, HttpClient httpClient, IndicesDescription indicesDescription) {
+    ElasticRestClient(int elasticsearchHttpPort, HttpClient httpClient, IndicesDescription indicesDescription, TemplatesDescription templatesDescription) {
         this.elasticsearchHttpPort = elasticsearchHttpPort;
         this.httpClient = httpClient;
         this.indicesDescription = indicesDescription;
+        this.templatesDescription = templatesDescription;
     }
 
     void createIndices() {
@@ -49,7 +51,9 @@ class ElasticRestClient {
     void createIndex(String indexName) {
         if (!indexExists(indexName)) {
             HttpPut request = new HttpPut(url("/" + indexName));
-            request.setEntity(new StringEntity(indicesDescription.getIndexSettings(indexName).toJson().toString(), APPLICATION_JSON));
+            if(indicesDescription.getIndexSettings(indexName).isPresent()) {
+                request.setEntity(new StringEntity(indicesDescription.getIndexSettings(indexName).get().toJson().toString(), APPLICATION_JSON));
+            }
             CloseableHttpResponse response = httpClient.execute(request);
             if (response.getStatusLine().getStatusCode() != 200) {
                 String responseBody = readBodySafely(response);
@@ -63,6 +67,41 @@ class ElasticRestClient {
         HttpHead request = new HttpHead(url("/" + indexName));
         CloseableHttpResponse response = httpClient.execute(request);
         return response.getStatusLine().getStatusCode() == OK;
+    }
+
+    void createTemplates(){ templatesDescription.getTemplatesNames().forEach(this::createTemplate);}
+
+    void createTemplate(String templateName) {
+        if(!templateExists(templateName)) {
+            HttpPut request = new HttpPut(url("/_template/" + templateName));
+            request.setEntity(new StringEntity(templatesDescription.getTemplateSettings(templateName), APPLICATION_JSON));
+            CloseableHttpResponse response = httpClient.execute(request);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                String responseBody = readBodySafely(response);
+                throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
+            }
+            waitForClusterYellow();
+        }
+    }
+
+    private boolean templateExists(String templateName) {
+        HttpHead request = new HttpHead(url("/" + templateName));
+        CloseableHttpResponse response = httpClient.execute(request);
+        return response.getStatusLine().getStatusCode() == OK;
+    }
+
+    void deleteTemplates() {
+        templatesDescription.getTemplatesNames().forEach(this::deleteTemplate);
+    }
+
+    void deleteTemplate(String templateName) {
+        if (indexExists(templateName)) {
+            HttpDelete request = new HttpDelete(url("/_template/" + templateName));
+            assertOk(httpClient.execute(request), "Delete request resulted in error");
+            waitForClusterYellow();
+        } else {
+            logger.warn("Template: {} does not exists so cannot be removed", templateName);
+        }
     }
 
     private void waitForClusterYellow() {

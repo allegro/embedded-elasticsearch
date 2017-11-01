@@ -2,17 +2,16 @@ package pl.allegro.tech.embeddedelasticsearch
 
 import groovy.transform.Immutable
 
+import static java.lang.ClassLoader.getSystemResource
 import static java.lang.ClassLoader.getSystemResourceAsStream
 
 class SampleIndices {
 
     static final CARS_INDEX_NAME = "cars"
     static final CAR_INDEX_TYPE = "car"
-    static final CARS_INDEX = IndexSettings.builder()
-            .withType(CAR_INDEX_TYPE, getSystemResourceAsStream("car-mapping.json"))
-            .withSettings(getSystemResourceAsStream("elastic-settings.json"))
-            .build()
-
+    static final CARS_TEMPLATE_NAME = "cars_template"
+    static final CARS_TEMPLATE = resourceToString("cars-template.json")
+    static final CARS_TEMPLATE_6x = resourceToString("cars-template-6x.json")
     static final BOOKS_INDEX_NAME = "books"
     static final PAPER_BOOK_INDEX_TYPE = "paper_book"
     static final AUDIO_BOOK_INDEX_TYPE = "audio_book"
@@ -83,5 +82,16 @@ class SampleIndices {
         String title
         String readBy
         String description
+    }
+
+    static String resourceToString(String resourceName) {
+        InputStream inputStream = getSystemResourceAsStream(resourceName)
+        ByteArrayOutputStream result = new ByteArrayOutputStream()
+        byte[] buffer = new byte[1024]
+        int length
+        while ((length = inputStream.read(buffer)) != -1) {
+            result.write(buffer, 0, length)
+        }
+        return result.toString("UTF-8")
     }
 }
