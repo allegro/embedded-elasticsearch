@@ -82,7 +82,7 @@ To start using embedded-elasticsearch in your project add it as a test dependenc
 Gradle:
 
 ```
-testCompile 'pl.allegro.tech:embedded-elasticsearch:2.1.0'
+testCompile 'pl.allegro.tech:embedded-elasticsearch:2.4.2'
 ```
 
 Maven:
@@ -91,7 +91,7 @@ Maven:
 <dependency>
     <groupId>pl.allegro.tech</groupId>
     <artifactId>embedded-elasticsearch</artifactId>
-    <version>2.1.0</version>
+    <version>2.4.2</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -99,7 +99,7 @@ Maven:
 SBT:
 
 ```
-libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.1.0" % "test")
+libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.4.2" % "test")
 ```
 
 ## Known problems
