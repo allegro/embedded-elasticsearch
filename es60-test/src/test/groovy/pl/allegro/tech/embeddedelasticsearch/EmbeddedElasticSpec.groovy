@@ -16,7 +16,7 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.getCARS_INDEX_
 
 class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
 
-    static final ELASTIC_VERSION = "6.0.0-beta1"
+    static final ELASTIC_VERSION = "6.0.1"
     static final TRANSPORT_TCP_PORT_VALUE = 9930
     static final CLUSTER_NAME_VALUE = "myTestCluster"
 

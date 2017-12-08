@@ -1,5 +1,5 @@
 plugins {
-    id 'pl.allegro.tech.build.axion-release' version '1.4.0'
+    id 'pl.allegro.tech.build.axion-release' version '1.8.1'
 }
 
 scmVersion {
@@ -29,5 +29,5 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.2'
+    gradleVersion = '4.3.1'
 }
