@@ -42,7 +42,7 @@ class ElasticServer {
         this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
     }
 
-    void start() throws IOException, InterruptedException {
+    void start() throws InterruptedException {
         startElasticProcess();
         installExitHook();
         waitForElasticToStart();
@@ -109,7 +109,7 @@ class ElasticServer {
         return executableFile.getAbsolutePath();
     }
 
-    private void waitForElasticToStart() throws InterruptedException, IOException {
+    private void waitForElasticToStart() throws InterruptedException {
         logger.info("Waiting for ElasticSearch to start...");
         long waitUtil = System.currentTimeMillis() + startTimeoutInMs;
 
@@ -148,21 +148,21 @@ class ElasticServer {
     }
 
     private void tryExtractPid(String line) {
-        Matcher matcher = Pattern.compile("pid\\[(\\d+)\\]").matcher(line);
+        Matcher matcher = Pattern.compile("pid\\[(\\d+)]").matcher(line);
         isTrue(matcher.find());
         pid = Integer.parseInt(matcher.group(1));
         logger.info("Detected Elasticsearch PID : " + pid);
     }
 
     private void tryExtractHttpPort(String line) {
-        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+).?\\}").matcher(line);
+        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+).?}").matcher(line);
         isTrue(matcher.find());
         httpPort = Integer.parseInt(matcher.group(1));
         logger.info("Detected Elasticsearch http port : " + httpPort);
     }
 
     private void tryExtractTransportTcpPort(String line) {
-        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+).?\\}").matcher(line);
+        Matcher matcher = Pattern.compile("publish_address \\{.*?:(\\d+).?}").matcher(line);
         isTrue(matcher.find());
         transportTcpPort = Integer.parseInt(matcher.group(1));
         logger.info("Detected Elasticsearch transport tcp port : " + transportTcpPort);
@@ -186,10 +186,16 @@ class ElasticServer {
     }
 
     private void stopElasticGracefully() throws IOException {
-        elastic.destroy();
+        if (SystemUtils.IS_OS_WINDOWS) {
+            stopElasticOnWindows();
+        } else {
+            elastic.destroy();
+        }
     }
 
-
+    private void stopElasticOnWindows() throws IOException {
+        Runtime.getRuntime().exec("taskkill /f /pid " + pid);
+    }
 
     private void finalizeClose() {
         if (this.cleanInstallationDirectoryOnStop) {
