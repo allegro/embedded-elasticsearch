@@ -1,6 +1,5 @@
 plugins {
-    id 'pl.allegro.tech.build.axion-release' version '1.8.1'
-    id "io.codearte.nexus-staging" version "0.8.0"
+    id 'pl.allegro.tech.build.axion-release' version '1.4.0'
 }
 
 scmVersion {
@@ -30,11 +29,5 @@ subprojects {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.3.1'
-}
-
-nexusStaging {
-    packageGroup = 'pl.allegro'
-    numberOfRetries = 15
-    delayBetweenRetriesInMillis = 5000
+    gradleVersion = '3.2'
 }
