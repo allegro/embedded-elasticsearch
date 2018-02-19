@@ -43,6 +43,7 @@ class ElasticRestClient {
     }
 
     void createIndices() {
+        waitForClusterYellow();
         indicesDescription.getIndicesNames().forEach(this::createIndex);
     }
 
