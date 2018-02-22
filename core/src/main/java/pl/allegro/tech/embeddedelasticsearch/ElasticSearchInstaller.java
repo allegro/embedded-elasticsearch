@@ -165,6 +165,7 @@ class ElasticSearchInstaller {
 
     private void install(String what, String relativePath, Path downloadedFile) throws IOException {
         Path destination = new File(getInstallationDirectory().getParentFile(), relativePath).toPath();
+        FileUtils.forceDelete(getInstallationDirectory());
         logger.info("Installing " + what + " into " + destination + "...");
         try {
             ZipFile zipFile = new ZipFile(downloadedFile.toString());

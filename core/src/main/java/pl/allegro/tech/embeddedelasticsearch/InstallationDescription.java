@@ -30,7 +30,7 @@ class InstallationDescription {
             Optional<File> installationDirectory,
             boolean cleanInstallationDirectoryOnStop,
             List<Plugin> plugins) {
-        require(versionMaybe.isPresent() || downloadUrlMaybe.isPresent(), "You must specify elasticsearch version, or download url");
+        require(versionMaybe.isPresent() ^ downloadUrlMaybe.isPresent(), "You must specify elasticsearch version, or download url");
         if (versionMaybe.isPresent()) {
             this.version = versionMaybe.get();
             this.downloadUrl = ElasticDownloadUrlUtils.urlFromVersion(versionMaybe.get());

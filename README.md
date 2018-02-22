@@ -1,9 +1,9 @@
 # embedded-elasticsearch
 
-![build status](https://travis-ci.org/allegro/embedded-elasticsearch.svg?branch=master)
-![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.allegro.tech/embedded-elasticsearch/badge.svg)
+[![Build Status](https://travis-ci.org/allegro/embedded-elasticsearch.svg?branch=master)](https://travis-ci.org/allegro/embedded-elasticsearch)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.allegro.tech/embedded-elasticsearch/badge.svg)](http://central.maven.org/maven2/pl/allegro/tech/embedded-elasticsearch)
 
-Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x, 5.x and 6.x.beta versions of Elasticsearch.
+Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x, 5.x and 6.x versions of Elasticsearch.
 
 ## Introduction
 
@@ -86,7 +86,7 @@ To start using embedded-elasticsearch in your project add it as a test dependenc
 Gradle:
 
 ```
-testCompile 'pl.allegro.tech:embedded-elasticsearch:2.1.0'
+testCompile 'pl.allegro.tech:embedded-elasticsearch:2.4.2'
 ```
 
 Maven:
@@ -95,7 +95,7 @@ Maven:
 <dependency>
     <groupId>pl.allegro.tech</groupId>
     <artifactId>embedded-elasticsearch</artifactId>
-    <version>2.1.0</version>
+    <version>2.4.2</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -103,7 +103,7 @@ Maven:
 SBT:
 
 ```
-libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.1.0" % "test")
+libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.4.2" % "test")
 ```
 
 ## Known problems
