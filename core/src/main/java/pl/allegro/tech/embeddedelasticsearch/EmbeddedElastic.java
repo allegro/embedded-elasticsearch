@@ -1,9 +1,11 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import org.apache.commons.io.IOUtils;
 import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 
 public final class EmbeddedElastic {
@@ -333,6 +336,17 @@ public final class EmbeddedElastic {
         public Builder withTemplate(String name, String templateBody) {
             this.templates.put(name, templateBody);
             return this;
+        }
+
+        /**
+         * add a template that will be created after Elasticsearch cluster started
+         * @param name
+         * @param templateBody
+         * @return
+         * @throws IOException
+         */
+        public Builder withTemplate(String name, InputStream templateBody) throws IOException {
+            return withTemplate(name, IOUtils.toString(templateBody, UTF_8));
         }
 
         /**

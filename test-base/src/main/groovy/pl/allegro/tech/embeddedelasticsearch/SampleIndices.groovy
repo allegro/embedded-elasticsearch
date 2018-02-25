@@ -2,7 +2,6 @@ package pl.allegro.tech.embeddedelasticsearch
 
 import groovy.transform.Immutable
 
-import static java.lang.ClassLoader.getSystemResource
 import static java.lang.ClassLoader.getSystemResourceAsStream
 
 class SampleIndices {
@@ -11,7 +10,7 @@ class SampleIndices {
     static final CAR_INDEX_TYPE = "car"
     static final CARS_TEMPLATE_NAME = "cars_template"
     static final CARS_TEMPLATE = resourceToString("cars-template.json")
-    static final CARS_TEMPLATE_6x = resourceToString("cars-template-6x.json")
+    static final CARS_TEMPLATE_6x = getSystemResourceAsStream("cars-template-6x.json")
     static final BOOKS_INDEX_NAME = "books"
     static final PAPER_BOOK_INDEX_TYPE = "paper_book"
     static final AUDIO_BOOK_INDEX_TYPE = "audio_book"
