@@ -44,6 +44,7 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withSetting(String key, Object value)` | setting name and value as in elasticsearch.yml file |
 | `withPlugin(String expression)` | plugin that should be installed into Elasticsearch; treat expression as argument to `./elasticsearch-plugin install <expression>` command; use multiple times for multiple plugins |
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
+| `withTemplate(String templateName, String templateBody)` | specify a template that should be created and managed by EmbeddedElastic |
 | `withStartTimeout(long value, TimeUnit unit)` | specify timeout you give Elasticsearch to start |
 | `withInstallationDirectory(File installationDirectory)` | specify custom installation directory |
 | `withDownloadDirectory(File downloadDirectory)` | specify custom download directory where downloaded distribution packages will be saved |
@@ -72,6 +73,9 @@ Available `IndexSettings.Builder` options
 | `createIndex(String indexName)`, `createIndices()` | creates index with name specified during EmbeddedElastic creation; note that this index is created during EmbeddedElastic startup, you will need this method only if you deleted your index using `deleteIndex` method |  
 | `recreateIndex(String indexName)`, `recreateIndices()` | combination of `deleteIndex` and `createIndex` |
 | `refreshIndices()` | refresh index; useful when you make changes in different thread, and want to check results instantly in tests |
+| `deleteTemplate(String templateName)`, `deleteTemplates()`  | deletes a template of the specified name/all templates during EmbeddedElastic creation |
+| `createTemplate(String templateName)`, `createTemplates()` | creates a template with the specified name/all templates during EmbeddedElastic creation; note that this template is created during EmbeddedElastic startup, you will need this method only if you deleted your template using `deleteTemplate` method |  
+| `recreateTemplate(String templateName)`, `recreateTemplates()` | combination of `deleteTemplate` and `createTemplate` |
 
 ## Example
 If you want to see example, look at this spec: `pl.allegro.tech.search.embeddedelasticsearch.EmbeddedElasticSpec`

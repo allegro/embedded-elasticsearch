@@ -1,9 +1,11 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import org.apache.commons.io.IOUtils;
 import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 
 public final class EmbeddedElastic {
@@ -22,6 +25,7 @@ public final class EmbeddedElastic {
     private final String esJavaOpts;
     private final InstanceSettings instanceSettings;
     private final IndicesDescription indicesDescription;
+    private final TemplatesDescription templatesDescription;
     private final InstallationDescription installationDescription;
     private final long startTimeoutInMs;
 
@@ -33,10 +37,12 @@ public final class EmbeddedElastic {
     }
 
     private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings,
-                            IndicesDescription indicesDescription, InstallationDescription installationDescription, long startTimeoutInMs) {
+                            IndicesDescription indicesDescription, TemplatesDescription templatesDescription,
+                            InstallationDescription installationDescription, long startTimeoutInMs) {
         this.esJavaOpts = esJavaOpts;
         this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
+        this.templatesDescription = templatesDescription;
         this.installationDescription = installationDescription;
         this.startTimeoutInMs = startTimeoutInMs;
     }
@@ -48,6 +54,7 @@ public final class EmbeddedElastic {
         installElastic();
         startElastic();
         createRestClient();
+        createTemplates();
         createIndices();
         return this;
     }
@@ -68,7 +75,7 @@ public final class EmbeddedElastic {
     }
 
     private void createRestClient() throws UnknownHostException {
-        elasticRestClient = new ElasticRestClient(elasticServer.getHttpPort(), new HttpClient(), indicesDescription);
+        elasticRestClient = new ElasticRestClient(elasticServer.getHttpPort(), new HttpClient(), indicesDescription, templatesDescription);
     }
 
     /**
@@ -163,6 +170,51 @@ public final class EmbeddedElastic {
         elasticRestClient.createIndex(indexName);
     }
 
+    public void createTemplates(){
+        elasticRestClient.createTemplates();
+    }
+
+
+    /**
+     * Recreates all templates (i.e. deletes and creates them again)
+     */
+    public void recreateTemplates() {
+        deleteTemplates();
+        createTemplates();
+    }
+
+    /**
+     * Recreates specified template (i.e. deletes and creates it again)
+     *
+     * @param templateName index to recreate
+     */
+    public void recreateTemplate(String templateName) {
+        deleteTemplate(templateName);
+        createTemplate(templateName);
+    }
+
+    /**
+     * Delete all templates
+     */
+    public void deleteTemplates() {
+        elasticRestClient.deleteTemplates();
+    }
+
+    /**
+     * Delete specified template
+     *
+     * @param templateName template do delete
+     */
+    public void deleteTemplate(String templateName) {
+        elasticRestClient.deleteTemplate(templateName);
+    }
+    /**
+     * Create specified template. Note that you can specify only template from list of templates specified during EmbeddedElastic creation
+     *
+     * @param templateName template to create
+     */
+    public void createTemplate(String templateName){ elasticRestClient.createTemplate(templateName);}
+
     /**
      * Refresh indices. Can be useful in tests that uses multiple threads
      */
@@ -198,7 +250,8 @@ public final class EmbeddedElastic {
         private Optional<String> version = Optional.empty();
         private List<Plugin> plugins = new ArrayList<>();
         private Optional<URL> downloadUrl = Optional.empty();
-        private Map<String, IndexSettings> indices = new HashMap<>();
+        private Map<String, Optional<IndexSettings>> indices = new HashMap<>();
+        private Map<String, String> templates = new HashMap<>();
         private InstanceSettings settings = new InstanceSettings();
         private String esJavaOpts = "";
         private long startTimeoutInMs = 15_000;
@@ -264,16 +317,36 @@ public final class EmbeddedElastic {
         /**
          * Index that will be created in created Elasticsearch cluster
          */
+        public Builder withIndex(String indexName, IndexSettings indexSettings) {
+            this.indices.put(indexName, Optional.of(indexSettings));
+            return this;
+        }
+
         public Builder withIndex(String indexName) {
-            return withIndex(indexName, IndexSettings.builder().build());
+            this.indices.put(indexName, Optional.empty());
+            return this;
         }
 
         /**
-         * Index that will be created in created Elasticsearch cluster
+         * add a template that will be created after Elasticsearch cluster started
+         * @param name
+         * @param templateBody
+         * @return
          */
-        public Builder withIndex(String indexName, IndexSettings indexSettings) {
-            this.indices.put(indexName, indexSettings);
+        public Builder withTemplate(String name, String templateBody) {
+            this.templates.put(name, templateBody);
             return this;
+        }
+
+        /**
+         * add a template that will be created after Elasticsearch cluster started
+         * @param name
+         * @param templateBody
+         * @return
+         * @throws IOException
+         */
+        public Builder withTemplate(String name, InputStream templateBody) throws IOException {
+            return withTemplate(name, IOUtils.toString(templateBody, UTF_8));
         }
 
         /**
@@ -289,6 +362,7 @@ public final class EmbeddedElastic {
                     esJavaOpts,
                     settings,
                     new IndicesDescription(indices),
+                    new TemplatesDescription(templates),
                     new InstallationDescription(version, downloadUrl, downloadDirectory, installationDirectory, cleanInstallationDirectoryOnStop, plugins),
                     startTimeoutInMs);
         }
