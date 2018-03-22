@@ -55,10 +55,15 @@ class ElasticRestClient {
             if(indicesDescription.getIndexSettings(indexName).isPresent()) {
                 request.setEntity(new StringEntity(indicesDescription.getIndexSettings(indexName).get().toJson().toString(), APPLICATION_JSON));
             }
-            CloseableHttpResponse response = httpClient.execute(request);
-            if (response.getStatusLine().getStatusCode() != 200) {
-                String responseBody = readBodySafely(response);
-                throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
+
+            try {
+                CloseableHttpResponse response = httpClient.execute(request);
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    String responseBody = readBodySafely(response);
+                    throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
+                }
+            } finally {
+                request.releaseConnection();
             }
             waitForClusterYellow();
         }
@@ -66,8 +71,12 @@ class ElasticRestClient {
 
     private boolean indexExists(String indexName) {
         HttpHead request = new HttpHead(url("/" + indexName));
-        CloseableHttpResponse response = httpClient.execute(request);
-        return response.getStatusLine().getStatusCode() == OK;
+        try {
+            CloseableHttpResponse response = httpClient.execute(request);
+            return response.getStatusLine().getStatusCode() == OK;
+        } finally {
+            request.releaseConnection();
+        }
     }
 
     void createTemplates(){ templatesDescription.getTemplatesNames().forEach(this::createTemplate);}
@@ -76,10 +85,14 @@ class ElasticRestClient {
         if(!templateExists(templateName)) {
             HttpPut request = new HttpPut(url("/_template/" + templateName));
             request.setEntity(new StringEntity(templatesDescription.getTemplateSettings(templateName), APPLICATION_JSON));
-            CloseableHttpResponse response = httpClient.execute(request);
-            if (response.getStatusLine().getStatusCode() != 200) {
-                String responseBody = readBodySafely(response);
-                throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
+            try {
+                CloseableHttpResponse response = httpClient.execute(request);
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    String responseBody = readBodySafely(response);
+                    throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
+                }
+            } finally {
+                request.releaseConnection();
             }
             waitForClusterYellow();
         }
@@ -87,8 +100,12 @@ class ElasticRestClient {
 
     private boolean templateExists(String templateName) {
         HttpHead request = new HttpHead(url("/" + templateName));
-        CloseableHttpResponse response = httpClient.execute(request);
-        return response.getStatusLine().getStatusCode() == OK;
+        try {
+            CloseableHttpResponse response = httpClient.execute(request);
+            return response.getStatusLine().getStatusCode() == OK;
+        } finally {
+            request.releaseConnection();
+        }
     }
 
     void deleteTemplates() {
@@ -98,7 +115,11 @@ class ElasticRestClient {
     void deleteTemplate(String templateName) {
         if (indexExists(templateName)) {
             HttpDelete request = new HttpDelete(url("/_template/" + templateName));
-            assertOk(httpClient.execute(request), "Delete request resulted in error");
+            try {
+                assertOk(httpClient.execute(request), "Delete request resulted in error");
+            } finally {
+                request.releaseConnection();
+            }
             waitForClusterYellow();
         } else {
             logger.warn("Template: {} does not exists so cannot be removed", templateName);
@@ -107,8 +128,12 @@ class ElasticRestClient {
 
     private void waitForClusterYellow() {
         HttpGet request = new HttpGet(url("/_cluster/health?wait_for_status=yellow&timeout=60s"));
-        CloseableHttpResponse response = httpClient.execute(request);
-        assertOk(response, "Cluster does not reached yellow status in specified timeout");
+        try {
+            CloseableHttpResponse response = httpClient.execute(request);
+            assertOk(response, "Cluster does not reached yellow status in specified timeout");
+        } finally {
+            request.releaseConnection();
+        }
     }
 
     void deleteIndices() {
@@ -118,7 +143,11 @@ class ElasticRestClient {
     void deleteIndex(String indexName) {
         if (indexExists(indexName)) {
             HttpDelete request = new HttpDelete(url("/" + indexName));
-            assertOk(httpClient.execute(request), "Delete request resulted in error");
+            try {
+                assertOk(httpClient.execute(request), "Delete request resulted in error");
+            } finally {
+                request.releaseConnection();
+            }
             waitForClusterYellow();
         } else {
             logger.warn("Index: {} does not exists so cannot be removed", indexName);
@@ -134,8 +163,12 @@ class ElasticRestClient {
         HttpPost request = new HttpPost(url("/" + indexName + "/" + indexType + "/_bulk"));
         request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
         request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
-        CloseableHttpResponse response = httpClient.execute(request);
-        assertOk(response, "Request finished with error");
+        try {
+            CloseableHttpResponse response = httpClient.execute(request);
+            assertOk(response, "Request finished with error");
+        } finally {
+            request.releaseConnection();
+        }
         refresh();
     }
 
@@ -149,7 +182,11 @@ class ElasticRestClient {
 
     void refresh() {
         HttpPost request = new HttpPost(url("/_refresh"));
-        httpClient.execute(request);
+        try {
+            httpClient.execute(request);
+        } finally {
+            request.releaseConnection();
+        }
     }
 
     private String url(String path) {
@@ -187,9 +224,14 @@ class ElasticRestClient {
                 .orElse("/_search");
         HttpGet request = new HttpGet(url(searchCommand));
 
-        CloseableHttpResponse response = httpClient.execute(request);
-        assertOk(response, "Error during search (" + searchCommand + ")");
-        String body = readBodySafely(response);
+        final String body;
+        try {
+            CloseableHttpResponse response = httpClient.execute(request);
+            assertOk(response, "Error during search (" + searchCommand + ")");
+            body = readBodySafely(response);
+        } finally {
+            request.releaseConnection();
+        }
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {

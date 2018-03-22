@@ -13,9 +13,7 @@ class HttpClient {
 
     CloseableHttpResponse execute(HttpRequestBase request) {
         try {
-            CloseableHttpResponse execute = internalHttpClient.execute(request);
-            request.releaseConnection();
-            return execute;
+            return internalHttpClient.execute(request);
         } catch (IOException e) {
             throw new HttpRequestException(e);
         }
