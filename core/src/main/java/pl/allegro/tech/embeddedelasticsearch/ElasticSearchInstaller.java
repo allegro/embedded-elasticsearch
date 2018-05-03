@@ -74,9 +74,15 @@ class ElasticSearchInstaller {
     private void installPlugins() throws IOException, InterruptedException {
         File pluginManager = pluginManagerExecutable();
         setExecutable(pluginManager);
+        File pluginsDir = new File(getInstallationDirectory(), "plugins");
+        String[] pluginList = pluginsDir.list();
 
         for (InstallationDescription.Plugin plugin : installationDescription.getPlugins()) {
             logger.info("> " + pluginManager + " install " + plugin.getExpression());
+            if(isPluginInstalled(plugin, pluginList)) {
+               logger.info("> Plugin " + plugin.getPluginName() + " already installed, skipping");
+               continue;
+            }
             ProcessBuilder builder = new ProcessBuilder();
             builder.redirectOutput(Redirect.INHERIT);
             builder.redirectError(Redirect.INHERIT);
@@ -86,6 +92,14 @@ class ElasticSearchInstaller {
                 throw new EmbeddedElasticsearchStartupException("Unable to install plugin: " + plugin);
             }
         }
+    }
+
+    private static boolean isPluginInstalled(InstallationDescription.Plugin plugin, String[] pluginList) {
+        if(pluginList == null) return false;
+        for(String filename : pluginList){
+            if(filename.equals(plugin.getPluginName())) return true;
+        }
+        return false;
     }
 
     private String[] prepareInstallCommand(File pluginManager, InstallationDescription.Plugin plugin) {
