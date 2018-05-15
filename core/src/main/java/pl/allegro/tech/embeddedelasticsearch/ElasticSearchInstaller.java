@@ -6,8 +6,10 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.URL;
 import java.nio.file.Path;
@@ -78,10 +80,15 @@ class ElasticSearchInstaller {
         for (InstallationDescription.Plugin plugin : installationDescription.getPlugins()) {
             logger.info("> " + pluginManager + " install " + plugin.getExpression());
             ProcessBuilder builder = new ProcessBuilder();
-            builder.redirectOutput(Redirect.INHERIT);
-            builder.redirectError(Redirect.INHERIT);
+            builder.redirectOutput(Redirect.PIPE);
+            builder.redirectErrorStream(true);
             builder.command(prepareInstallCommand(pluginManager, plugin));
             Process process = builder.start();
+            BufferedReader bReader = new BufferedReader(new InputStreamReader(process.getInputStream(), UTF_8));
+            String line;
+            while ((line = bReader.readLine()) != null) {
+                logger.info(String.format("Plugin install %s: %s", plugin, line));
+            }
             if (process.waitFor() != 0) {
                 throw new EmbeddedElasticsearchStartupException("Unable to install plugin: " + plugin);
             }
