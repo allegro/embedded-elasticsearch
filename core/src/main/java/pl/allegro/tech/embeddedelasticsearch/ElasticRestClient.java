@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -31,6 +32,8 @@ import static pl.allegro.tech.embeddedelasticsearch.HttpStatusCodes.OK;
 class ElasticRestClient {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticRestClient.class);
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private int elasticsearchHttpPort;
     private final HttpClient httpClient;
@@ -52,43 +55,50 @@ class ElasticRestClient {
     void createIndex(String indexName) {
         if (!indexExists(indexName)) {
             HttpPut request = new HttpPut(url("/" + indexName));
-            if(indicesDescription.getIndexSettings(indexName).isPresent()) {
-                request.setEntity(new StringEntity(indicesDescription.getIndexSettings(indexName).get().toJson().toString(), APPLICATION_JSON));
-            }
-            CloseableHttpResponse response = httpClient.execute(request);
-            if (response.getStatusLine().getStatusCode() != 200) {
-                String responseBody = readBodySafely(response);
-                throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
-            }
+            indicesDescription
+                    .getIndexSettings(indexName)
+                    .ifPresent(indexSettings -> setIndexSettingsAsEntity(request, indexSettings));
+            httpClient.execute(request, response -> {
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    String responseBody = readBodySafely(response);
+                    throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
+                }
+            });
             waitForClusterYellow();
         }
     }
 
-    private boolean indexExists(String indexName) {
-        HttpHead request = new HttpHead(url("/" + indexName));
-        CloseableHttpResponse response = httpClient.execute(request);
-        return response.getStatusLine().getStatusCode() == OK;
+    private void setIndexSettingsAsEntity(HttpPut request, IndexSettings indexSettings) {
+        request.setEntity(new StringEntity(indexSettings.toJson().toString(), APPLICATION_JSON));
     }
 
-    void createTemplates(){ templatesDescription.getTemplatesNames().forEach(this::createTemplate);}
+    private boolean indexExists(String indexName) {
+        HttpHead request = new HttpHead(url("/" + indexName));
+        return httpClient.execute(request, response -> response.getStatusLine().getStatusCode() == OK);
+    }
+
+    void createTemplates() {
+        templatesDescription.getTemplatesNames().forEach(this::createTemplate);
+    }
 
     void createTemplate(String templateName) {
-        if(!templateExists(templateName)) {
+        if (!templateExists(templateName)) {
             HttpPut request = new HttpPut(url("/_template/" + templateName));
             request.setEntity(new StringEntity(templatesDescription.getTemplateSettings(templateName), APPLICATION_JSON));
-            CloseableHttpResponse response = httpClient.execute(request);
-            if (response.getStatusLine().getStatusCode() != 200) {
-                String responseBody = readBodySafely(response);
-                throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
-            }
+            httpClient.execute(request, response -> {
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    String responseBody = readBodySafely(response);
+                    throw new RuntimeException("Call to elasticsearch resulted in error:\n" + responseBody);
+                }
+            });
             waitForClusterYellow();
         }
     }
 
     private boolean templateExists(String templateName) {
         HttpHead request = new HttpHead(url("/" + templateName));
-        CloseableHttpResponse response = httpClient.execute(request);
-        return response.getStatusLine().getStatusCode() == OK;
+        return httpClient.execute(request, response ->
+                response.getStatusLine().getStatusCode() == OK);
     }
 
     void deleteTemplates() {
@@ -98,7 +108,7 @@ class ElasticRestClient {
     void deleteTemplate(String templateName) {
         if (indexExists(templateName)) {
             HttpDelete request = new HttpDelete(url("/_template/" + templateName));
-            assertOk(httpClient.execute(request), "Delete request resulted in error");
+            httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Delete request resulted in error"));
             waitForClusterYellow();
         } else {
             logger.warn("Template: {} does not exists so cannot be removed", templateName);
@@ -107,8 +117,7 @@ class ElasticRestClient {
 
     private void waitForClusterYellow() {
         HttpGet request = new HttpGet(url("/_cluster/health?wait_for_status=yellow&timeout=60s"));
-        CloseableHttpResponse response = httpClient.execute(request);
-        assertOk(response, "Cluster does not reached yellow status in specified timeout");
+        httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Cluster does not reached yellow status in specified timeout"));
     }
 
     void deleteIndices() {
@@ -118,7 +127,7 @@ class ElasticRestClient {
     void deleteIndex(String indexName) {
         if (indexExists(indexName)) {
             HttpDelete request = new HttpDelete(url("/" + indexName));
-            assertOk(httpClient.execute(request), "Delete request resulted in error");
+            httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Delete request resulted in error"));
             waitForClusterYellow();
         } else {
             logger.warn("Index: {} does not exists so cannot be removed", indexName);
@@ -134,8 +143,7 @@ class ElasticRestClient {
         HttpPost request = new HttpPost(url("/" + indexName + "/" + indexType + "/_bulk"));
         request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
         request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
-        CloseableHttpResponse response = httpClient.execute(request);
-        assertOk(response, "Request finished with error");
+        httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Request finished with error"));
         refresh();
     }
 
@@ -149,7 +157,11 @@ class ElasticRestClient {
 
     void refresh() {
         HttpPost request = new HttpPost(url("/_refresh"));
-        httpClient.execute(request);
+        try {
+            httpClient.execute(request);
+        } finally {
+            request.releaseConnection();
+        }
     }
 
     private String url(String path) {
@@ -180,20 +192,30 @@ class ElasticRestClient {
                     .collect(toList());
         }
     }
-
+    
     private Stream<String> searchForDocuments(Optional<String> indexMaybe) {
-        String searchCommand = indexMaybe
-                .map(index -> "/" + index + "/_search")
-                .orElse("/_search");
+        String searchCommand = prepareQuery(indexMaybe);
+        String body = fetchDocuments(searchCommand);
+        return parseDocuments(body);
+    }
+
+    private String prepareQuery(Optional<String> indexMaybe) {
+        return indexMaybe
+                    .map(index -> "/" + index + "/_search")
+                    .orElse("/_search");
+    }
+
+    private String fetchDocuments(String searchCommand) {
         HttpGet request = new HttpGet(url(searchCommand));
+        return httpClient.execute(request, response -> {
+            assertOk(response, "Error during search (" + searchCommand + ")");
+            return readBodySafely(response);
+        });
+    }
 
-        CloseableHttpResponse response = httpClient.execute(request);
-        assertOk(response, "Error during search (" + searchCommand + ")");
-        String body = readBodySafely(response);
-
-        ObjectMapper objectMapper = new ObjectMapper();
+    private Stream<String> parseDocuments(String body) {
         try {
-            JsonNode jsonNode = objectMapper.readTree(body);
+            JsonNode jsonNode = OBJECT_MAPPER.readTree(body);
             return StreamSupport.stream(jsonNode.get("hits").get("hits").spliterator(), false)
                     .map(hitNode -> hitNode.get("_source"))
                     .map(JsonNode::toString);
