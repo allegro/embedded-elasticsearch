@@ -41,6 +41,7 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | ------------- | ------------- |
 | `withElasticVersion(String version)` | version of Elasticsearch; based on that version download url to official Elasticsearch repository will be created |
 | `withDownloadUrl(URL downloadUrl)` | if you prefer to download Elasticsearch from a different location than official repositories you can do that using this method |
+| `withInResourceLocation(String inResourcePath)` | you can also have your Elasticsearch package inside resource directory, specify it's location with this option  |
 | `withSetting(String key, Object value)` | setting name and value as in elasticsearch.yml file |
 | `withPlugin(String expression)` | plugin that should be installed into Elasticsearch; treat expression as argument to `./elasticsearch-plugin install <expression>` command; use multiple times for multiple plugins |
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
@@ -52,6 +53,9 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withEsJavaOpts(String javaOpts)` | value of `ES_JAVA_OPTS` variable to be set for Elasticsearch process |
 | `getTransportTcpPort()` | get transport tcp port number used by Elasticsearch instance |
 | `getHttpPort()` | get http port number used by Elasticsearch instance |
+| `withDownloadProxy(Proxy proxy)` | proxy that should be used for downloading Elasticsearch package |
+| `withDownloaderConnectionTimeout(long value, TimeUnit unit)` | connection timeout that should be used by downloader |
+| `withDownloaderReadTimeout(long value, TimeUnit unit)` | socket timeout that should be used by downloader |
 
 Available `IndexSettings.Builder` options
 

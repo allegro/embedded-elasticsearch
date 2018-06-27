@@ -6,6 +6,7 @@ import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
+import static pl.allegro.tech.embeddedelasticsearch.Require.require;
 
 public final class EmbeddedElastic {
 
@@ -82,7 +84,9 @@ public final class EmbeddedElastic {
      * Stops Elasticsearch instance and removes data
      */
     public void stop() {
-        elasticServer.stop();
+        if (elasticServer != null) {
+            elasticServer.stop();
+        }
     }
 
     /**
@@ -247,17 +251,19 @@ public final class EmbeddedElastic {
 
     public static final class Builder {
 
-        private Optional<String> version = Optional.empty();
+        private InstallationSource installationSource = null;
         private List<Plugin> plugins = new ArrayList<>();
-        private Optional<URL> downloadUrl = Optional.empty();
         private Map<String, Optional<IndexSettings>> indices = new HashMap<>();
         private Map<String, String> templates = new HashMap<>();
         private InstanceSettings settings = new InstanceSettings();
         private String esJavaOpts = "";
         private long startTimeoutInMs = 15_000;
         private boolean cleanInstallationDirectoryOnStop = true;
-        private Optional<File> installationDirectory = Optional.empty();
-        private Optional<File> downloadDirectory = Optional.empty();
+        private File installationDirectory = null;
+        private File downloadDirectory = null;
+        private int downloaderConnectionTimeoutInMs = 3_000;
+        private int downloaderReadTimeoutInMs = 300_000;
+        private Proxy downloadProxy = null;
 
         private Builder() {
         }
@@ -273,12 +279,12 @@ public final class EmbeddedElastic {
         }
 
         public Builder withInstallationDirectory(File installationDirectory) {
-            this.installationDirectory = Optional.of(installationDirectory);
+            this.installationDirectory = installationDirectory;
             return this;
         }
 
         public Builder withDownloadDirectory(File downloadDirectory) {
-            this.downloadDirectory = Optional.of(downloadDirectory);
+            this.downloadDirectory = downloadDirectory;
             return this;
         }
 
@@ -291,7 +297,7 @@ public final class EmbeddedElastic {
          * Desired version of Elasticsearch. It will be used to generate download URL to official mirrors
          */
         public Builder withElasticVersion(String version) {
-            this.version = Optional.of(version);
+            this.installationSource = new InstallFromVersion(version);
             return this;
         }
 
@@ -300,7 +306,15 @@ public final class EmbeddedElastic {
          * <p><strong>Specify urls only to locations that you trust!</strong></p>
          */
         public Builder withDownloadUrl(URL downloadUrl) {
-            this.downloadUrl = Optional.of(downloadUrl);
+            this.installationSource = new InstallFromDirectUrl(downloadUrl);
+            return this;
+        }
+
+        /**
+         * In resource path to Elasticsearch zip archive.
+         */
+        public Builder withInResourceLocation(String inResourcePath) {
+            this.installationSource = new InstallFromResources(inResourcePath);
             return this;
         }
 
@@ -357,13 +371,38 @@ public final class EmbeddedElastic {
             return this;
         }
 
+        /**
+         * Set connection timeout for HTTP client used by downloader
+         */
+        public Builder withDownloaderConnectionTimeout(long value, TimeUnit unit) {
+            downloaderConnectionTimeoutInMs = (int) unit.toMillis(value);
+            return this;
+        }
+
+        /**
+         * Set read timeout for HTTP client used by downloader
+         */
+        public Builder withDownloaderReadTimeout(long value, TimeUnit unit) {
+            downloaderReadTimeoutInMs = (int) unit.toMillis(value);
+            return this;
+        }
+
+        /**
+         * Set proxy that should be used to download elastic package
+         */
+        public Builder withDownloadProxy(Proxy proxy) {
+            downloadProxy = proxy;
+            return this;
+        }
+        
         public EmbeddedElastic build() {
+            require(installationSource != null, "You must specify elasticsearch version, or download url");
             return new EmbeddedElastic(
                     esJavaOpts,
                     settings,
                     new IndicesDescription(indices),
                     new TemplatesDescription(templates),
-                    new InstallationDescription(version, downloadUrl, downloadDirectory, installationDirectory, cleanInstallationDirectoryOnStop, plugins),
+                    new InstallationDescription(installationSource, downloadDirectory, installationDirectory, cleanInstallationDirectoryOnStop, plugins, downloaderConnectionTimeoutInMs, downloaderReadTimeoutInMs, downloadProxy),
                     startTimeoutInMs);
         }
 

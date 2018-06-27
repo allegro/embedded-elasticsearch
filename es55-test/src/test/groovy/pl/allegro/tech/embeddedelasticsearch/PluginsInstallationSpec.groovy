@@ -28,6 +28,6 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     @Override
     String pluginByName() {
-        return "analysis-icu"
+        return "discovery-file"
     }
 }

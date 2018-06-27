@@ -45,13 +45,25 @@ class ValidationSpec extends Specification {
             noExceptionThrown()
     }
 
+    def "should construct embedded elastic with minimal required arguments and in resource location"() {
+        when:
+            EmbeddedElastic.builder()
+                    .withInResourceLocation("elasticsearch-6.0.1.zip")
+                    .withStartTimeout(TEST_START_TIMEOUT_IN_MINUTES, MINUTES)
+                    .build()
+                    .start()
+                    .stop()
+        then:
+            noExceptionThrown()
+    }
+
     def "should construct embedded elastic with minimal required arguments and custom download and install directory"() {
         when:
             def uniqId = UUID.randomUUID().toString();
             def installDir = new File(FileUtils.tempDirectory, "$uniqId-install")
             def downloadDir = new File(FileUtils.tempDirectory, "$uniqId-download")
             EmbeddedElastic.builder()
-                    .withDownloadUrl(ELASTIC_DOWNLOAD_URL)
+                    .withInResourceLocation("elasticsearch-6.0.1.zip")
                     .withStartTimeout(TEST_START_TIMEOUT_IN_MINUTES, MINUTES)
                     .withDownloadDirectory(downloadDir)
                     .withInstallationDirectory(installDir)

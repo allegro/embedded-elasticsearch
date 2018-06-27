@@ -34,12 +34,12 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     @Override
     String pluginByUrlUrl() {
-        return "http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-analysis-decompound/2.2.0.0/elasticsearch-analysis-decompound-2.2.0.0-plugin.zip"
+        return "https://download.elastic.co/elasticsearch/release/org/elasticsearch/plugin/analysis-smartcn/2.2.0/analysis-smartcn-2.2.0.zip"
     }
 
     @Override
     String pluginByUrlName() {
-        return "decompound"
+        return "analysis-smartcn"
     }
 
     @Override

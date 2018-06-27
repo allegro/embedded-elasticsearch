@@ -1,55 +1,51 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import static org.apache.commons.io.FileUtils.getFile;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.File;
+import java.net.Proxy;
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
-import org.apache.commons.io.FilenameUtils;
-
-import static pl.allegro.tech.embeddedelasticsearch.Require.require;
 
 class InstallationDescription {
 
-    private static final Supplier<File> DEFAULT_INSTALL_DIR = () -> new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir");
-    private static final Supplier<File> DEFAULT_DOWNLOAD_DIR = DEFAULT_INSTALL_DIR;
+    private static final File DEFAULT_INSTALL_DIR = new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-temp-dir");
+    private static final File DEFAULT_DOWNLOAD_DIR = DEFAULT_INSTALL_DIR;
 
-    private final String version;
-    private final URL downloadUrl;
+    private final InstallationSource installationSource;
     private final List<Plugin> plugins;
     private final boolean cleanInstallationDirectoryOnStop;
     private final File installationDirectory;
     private final File downloadDirectory;
+    private final int downloaderConnectionTimeoutInMs;
+    private final int downloaderReadTimeoutInMs;
+    private final Proxy downloadProxy;
 
     InstallationDescription(
-            Optional<String> versionMaybe,
-            Optional<URL> downloadUrlMaybe,
-            Optional<File> downloadDirectory,
-            Optional<File> installationDirectory,
+            InstallationSource installationSource,
+            File downloadDirectory,
+            File installationDirectory,
             boolean cleanInstallationDirectoryOnStop,
-            List<Plugin> plugins) {
-        require(versionMaybe.isPresent() ^ downloadUrlMaybe.isPresent(), "You must specify elasticsearch version, or download url");
-        if (versionMaybe.isPresent()) {
-            this.version = versionMaybe.get();
-            this.downloadUrl = ElasticDownloadUrlUtils.urlFromVersion(versionMaybe.get());
-        } else {
-            this.version = ElasticDownloadUrlUtils.versionFromUrl(downloadUrlMaybe.get());
-            this.downloadUrl = downloadUrlMaybe.get();
-        }
+            List<Plugin> plugins,
+            int downloaderConnectionTimeoutInMs,
+            int downloaderReadTimeoutInMs, Proxy downloadProxy) {
+        this.installationSource = installationSource;
         this.plugins = plugins;
         this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
-        this.installationDirectory = getFile(installationDirectory.orElseGet(DEFAULT_INSTALL_DIR));
-        this.downloadDirectory = getFile(downloadDirectory.orElseGet(DEFAULT_DOWNLOAD_DIR));
+        this.installationDirectory = ObjectUtils.firstNonNull(installationDirectory, DEFAULT_INSTALL_DIR);
+        this.downloadDirectory = ObjectUtils.firstNonNull(downloadDirectory, DEFAULT_DOWNLOAD_DIR);
+        this.downloaderConnectionTimeoutInMs = downloaderConnectionTimeoutInMs;
+        this.downloaderReadTimeoutInMs = downloaderReadTimeoutInMs;
+        this.downloadProxy = downloadProxy;
     }
 
     String getVersion() {
-        return version;
+        return installationSource.determineVersion();
     }
 
     URL getDownloadUrl() {
-        return downloadUrl;
+        return installationSource.resolveDownloadUrl();
     }
 
     List<Plugin> getPlugins() {
@@ -57,7 +53,7 @@ class InstallationDescription {
     }
 
     boolean versionIs1x() {
-        return version.startsWith("1.");
+        return getVersion().startsWith("1.");
     }
 
     boolean isCleanInstallationDirectoryOnStop() {
@@ -68,8 +64,20 @@ class InstallationDescription {
         return installationDirectory;
     }
 
-    public File getDownloadDirectory() {
+    File getDownloadDirectory() {
         return downloadDirectory;
+    }
+
+    int getDownloaderConnectionTimeoutInMs() {
+        return downloaderConnectionTimeoutInMs;
+    }
+
+    int getDownloaderReadTimeoutInMs() {
+        return downloaderReadTimeoutInMs;
+    }
+
+    Proxy getDownloadProxy() {
+        return downloadProxy;
     }
 
     static class Plugin {
