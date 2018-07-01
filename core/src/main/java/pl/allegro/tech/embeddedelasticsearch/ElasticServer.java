@@ -114,11 +114,14 @@ class ElasticServer {
         long waitUtil = System.currentTimeMillis() + startTimeoutInMs;
 
         synchronized (startedLock) {
-            while (!started && System.currentTimeMillis() < waitUtil) {
-                startedLock.wait(waitUtil - System.currentTimeMillis());
+            boolean timedOut = false;
+            while (!started && !timedOut && (elastic == null || elastic.isAlive())) {
+                startedLock.wait(100);
+                timedOut = System.currentTimeMillis() > waitUtil;
             }
             if (!started) {
-                throw new EmbeddedElasticsearchStartupException("Failed to start elasticsearch within time-out");
+                String message = timedOut ? "Failed to start elasticsearch within time-out" : "Failed to start elasticsearch. Check previous logs for details";
+                throw new EmbeddedElasticsearchStartupException(message);
             }
         }
 

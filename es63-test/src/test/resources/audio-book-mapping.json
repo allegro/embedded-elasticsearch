@@ -1,0 +1,21 @@
+{
+  "audio_book": {
+    "properties": {
+      "author": {
+        "type": "text",
+        "index": "false"
+      },
+      "title": {
+        "type": "text",
+        "index": "false"
+      },
+      "readBy": {
+        "type": "text",
+        "index": "false"
+      },
+      "description": {
+        "type": "text"
+      }
+    }
+  }
+}

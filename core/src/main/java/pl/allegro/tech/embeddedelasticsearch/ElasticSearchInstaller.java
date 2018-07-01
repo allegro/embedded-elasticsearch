@@ -1,8 +1,8 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
+import org.rauschig.jarchivelib.Archiver;
+import org.rauschig.jarchivelib.ArchiverFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
@@ -13,9 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,7 +27,6 @@ class ElasticSearchInstaller {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchInstaller.class);
     private static final String ELS_PACKAGE_PREFIX = "elasticsearch-";
-    private static final List<String> ELS_EXECUTABLE_FILES = Arrays.asList("elasticsearch", "elasticsearch.in.sh");
 
     private final InstanceSettings instanceSettings;
     private final InstallationDescription installationDescription;
@@ -55,7 +52,6 @@ class ElasticSearchInstaller {
         installElastic(downloadedTo);
         configureElastic();
         installPlugins();
-        applyElasticPermissionRights();
     }
 
     private void prepareDirectories() throws IOException {
@@ -67,13 +63,17 @@ class ElasticSearchInstaller {
         FileUtils.forceDelete(getInstallationDirectory());
         logger.info("Installing Elasticsearch" + " into " + destination + "...");
         try {
-            ZipFile zipFile = new ZipFile(downloadedTo.toString());
-            zipFile.extractAll(destination.toString());
+            unzip(downloadedTo, destination);
             logger.info("Done");
-        } catch (ZipException e) {
+        } catch (IOException e) {
             logger.info("Failure : " + e);
             throw new EmbeddedElasticsearchStartupException(e);
         }
+    }
+
+    private void unzip(Path downloadedTo, File destination) throws IOException {
+        Archiver archiver = ArchiverFactory.createArchiver("zip");
+        archiver.extract(downloadedTo.toFile(), destination);
     }
 
     private void configureElastic() throws IOException {
@@ -139,7 +139,6 @@ class ElasticSearchInstaller {
         } else {
             pluginManager = fileRelativeToInstallationDir("bin", systemDependentExtension("plugin"));
         }
-        setExecutable(pluginManager);
         return pluginManager;
     }
 
@@ -151,18 +150,4 @@ class ElasticSearchInstaller {
         return getFile(getInstallationDirectory(), path);
     }
 
-    private void applyElasticPermissionRights() throws IOException {
-        if (IS_OS_WINDOWS) {
-            return;
-        }
-        File binDirectory = getFile(getInstallationDirectory(), "bin");
-        for (String fn : ELS_EXECUTABLE_FILES) {
-            setExecutable(new File(binDirectory, fn));
-        }
-    }
-
-    private void setExecutable(File executableFile) throws IOException {
-        logger.info("Applying executable permissions on " + executableFile);
-        executableFile.setExecutable(true);
-    }
 }
