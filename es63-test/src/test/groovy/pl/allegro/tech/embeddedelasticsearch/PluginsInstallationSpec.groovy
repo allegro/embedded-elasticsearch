@@ -1,5 +1,7 @@
 package pl.allegro.tech.embeddedelasticsearch
 
+import static java.util.concurrent.TimeUnit.MINUTES
+
 class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     static final HTTP_PORT_VALUE = 9200
@@ -9,6 +11,7 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
                 .withElasticVersion("6.3.0")
                 .withEsJavaOpts("-Xms128m -Xmx512m")
                 .withSetting(PopularProperties.HTTP_PORT, HTTP_PORT_VALUE)
+                .withStartTimeout(2, MINUTES)
     }
 
     @Override

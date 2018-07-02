@@ -24,7 +24,7 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
             .withTemplate(CARS_TEMPLATE_NAME, CARS_TEMPLATE_6x)
             .withIndex(CARS_INDEX_NAME)
             .withIndex(BOOKS_INDEX_NAME, BOOKS_INDEX)
-            .withStartTimeout(1, MINUTES)
+            .withStartTimeout(2, MINUTES)
             .build()
             .start()
 
