@@ -56,6 +56,10 @@ class InstallationDescription {
         return getVersion().startsWith("1.");
     }
 
+    boolean versionIs2x() {
+        return getVersion().startsWith("2.");
+    }
+
     boolean isCleanInstallationDirectoryOnStop() {
         return cleanInstallationDirectoryOnStop;
     }

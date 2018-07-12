@@ -128,7 +128,10 @@ class ElasticSearchInstaller {
         if (installationDescription.versionIs1x() && plugin.expressionIsUrl()) {
             return new String[]{pluginManager.getAbsolutePath(), "--install", plugin.getPluginName(), "--url", plugin.getExpression()};
         }
-        return new String[]{pluginManager.getAbsolutePath(), "install", plugin.getExpression()};
+        if (installationDescription.versionIs1x() || installationDescription.versionIs2x()) {
+            return new String[]{pluginManager.getAbsolutePath(), "install", plugin.getExpression()};
+        }
+        return new String[]{pluginManager.getAbsolutePath(), "install", "--batch", plugin.getExpression()};
     }
 
     private File pluginManagerExecutable() throws IOException {
