@@ -9,7 +9,7 @@ Small utility for creating integration tests that use Elasticsearch. Instead of 
 
 All you need to do to use this tool is create `EmbeddedElastic` instance. To do so, use provided builder:
 
-```
+```java
 final embeddedElastic = EmbeddedElastic.builder()
         .withElasticVersion("5.0.0")
         .withSetting(PopularProperties.TRANSPORT_TCP_PORT, 9350)
@@ -29,7 +29,7 @@ final embeddedElastic = EmbeddedElastic.builder()
 
 When you are done with creating it, you can start it real simple:
 
-```
+```java
 embeddedElastic.start()
 ```
 
@@ -89,17 +89,17 @@ To start using embedded-elasticsearch in your project add it as a test dependenc
 
 Gradle:
 
-```
-testCompile 'pl.allegro.tech:embedded-elasticsearch:2.4.2'
+```groovy
+testCompile 'pl.allegro.tech:embedded-elasticsearch:2.7.0'
 ```
 
 Maven:
 
-```
+```xml
 <dependency>
     <groupId>pl.allegro.tech</groupId>
     <artifactId>embedded-elasticsearch</artifactId>
-    <version>2.4.2</version>
+    <version>2.7.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -107,13 +107,13 @@ Maven:
 SBT:
 
 ```
-libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.4.2" % "test")
+libraryDependencies ++= Seq("pl.allegro.tech" % "embedded-elasticsearch" % "2.7.0" % "test")
 ```
 
 ## Known problems
 If you build your project on Travis, you may have problems with OOM errors when using default settings. You can change Elasticsearch memory settings using `withEsJavaOpts` method. Example (from spec `pl.allegro.tech.embeddedelasticsearch.EmbeddedElasticSpec`):
 
-```
+```java
     static EmbeddedElastic embeddedElastic = EmbeddedElastic.builder()
             .withElasticVersion(ELASTIC_VERSION)
             .withSetting(TRANSPORT_TCP_PORT, TRANSPORT_TCP_PORT_VALUE)
