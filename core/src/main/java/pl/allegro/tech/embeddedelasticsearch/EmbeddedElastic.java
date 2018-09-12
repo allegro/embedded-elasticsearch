@@ -33,6 +33,8 @@ public final class EmbeddedElastic {
 
     private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
+    private boolean started = false;
+    private final Object lifecycleLock = new Object();
 
     public static Builder builder() {
         return new Builder();
@@ -53,11 +55,18 @@ public final class EmbeddedElastic {
      * Downloads Elasticsearch with specified plugins, setups them and starts
      */
     public EmbeddedElastic start() throws IOException, InterruptedException {
-        installElastic();
-        startElastic();
-        createRestClient();
-        createTemplates();
-        createIndices();
+        if (!started) {
+            synchronized (lifecycleLock) {
+                if (!started) {
+                    started = true;
+                    installElastic();
+                    startElastic();
+                    createRestClient();
+                    createTemplates();
+                    createIndices();
+                }
+            }
+        }
         return this;
     }
 
@@ -85,7 +94,14 @@ public final class EmbeddedElastic {
      */
     public void stop() {
         if (elasticServer != null) {
-            elasticServer.stop();
+            if (started) {
+                synchronized (lifecycleLock) {
+                    if (started) {
+                        started = false;
+                        elasticServer.stop();
+                    }
+                }
+            }
         }
     }
 
