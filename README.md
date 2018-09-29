@@ -128,10 +128,10 @@ If you build your project on Travis, you may have problems with OOM errors when 
 
 ## Running more then one Elasticsearch instance
 
-There are cases where you might want to run more then one Elasticsearch instance e.g.:
+There are cases where you might want to run more than one Elasticsearch instance e.g.:
 - running tests of one project in parallel (e.g. using _gradle --parallel_ or _mvn -T1C_)
 - running tests of different projects on the same physical mashine (e.g. Jenkins jobs running on the same server)
-- running integration tests wich require more then elastic search instance
+- running integration tests which require more than one Elasticsearch instance
 
 In such situations you should use distinct values for following settings for each instance:
 
@@ -139,8 +139,8 @@ In such situations you should use distinct values for following settings for eac
 - `withSetting(PopularProperties.HTTP_PORT, ...)`
 - `withInstallationDirectory(...)`
 
-With such configuration *embedded-elasticsearch* will redonload elasticsearch instllation package for every distinct
-instalation directory. To avoid whis behavior and thus reuse downloaded installation package you should
+With such configuration *embedded-elasticsearch* will redownload elasticsearch installation package for every distinct
+installation directory. To avoid this behavior and reuse downloaded installation package you should
 set common location of downloaded files with `withDownloadDirectory(...)` for every *embedded-elasticsearch* configuration.
 
 ## License
