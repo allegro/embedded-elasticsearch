@@ -33,7 +33,7 @@ public final class EmbeddedElastic {
 
     private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
-    private boolean started = false;
+    private volatile boolean started = false;
 
     public static Builder builder() {
         return new Builder();
