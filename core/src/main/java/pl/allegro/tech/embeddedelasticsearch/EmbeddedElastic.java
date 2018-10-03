@@ -33,6 +33,7 @@ public final class EmbeddedElastic {
 
     private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
+    private volatile boolean started = false;
 
     public static Builder builder() {
         return new Builder();
@@ -52,12 +53,15 @@ public final class EmbeddedElastic {
     /**
      * Downloads Elasticsearch with specified plugins, setups them and starts
      */
-    public EmbeddedElastic start() throws IOException, InterruptedException {
-        installElastic();
-        startElastic();
-        createRestClient();
-        createTemplates();
-        createIndices();
+    public synchronized EmbeddedElastic start() throws IOException, InterruptedException {
+        if (!started) {
+            started = true;
+            installElastic();
+            startElastic();
+            createRestClient();
+            createTemplates();
+            createIndices();
+        }
         return this;
     }
 
@@ -83,8 +87,9 @@ public final class EmbeddedElastic {
     /**
      * Stops Elasticsearch instance and removes data
      */
-    public void stop() {
-        if (elasticServer != null) {
+    public synchronized void stop() {
+        if (elasticServer != null && started) {
+            started = false;
             elasticServer.stop();
         }
     }
