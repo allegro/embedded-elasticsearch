@@ -33,13 +33,15 @@ class ElasticServer {
     private volatile int pid = -1;
     private volatile int httpPort = -1;
     private volatile int transportTcpPort = -1;
+    private JavaHomeOption javaHome;
 
-    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop) {
+    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop, JavaHomeOption javaHome) {
         this.esJavaOpts = esJavaOpts;
         this.installationDirectory = installationDirectory;
         this.executableFile = executableFile;
         this.startTimeoutInMs = startTimeoutInMs;
         this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
+        this.javaHome = javaHome;
     }
 
     void start() throws InterruptedException {
@@ -75,6 +77,7 @@ class ElasticServer {
                 synchronized (this) {
                     ProcessBuilder builder = new ProcessBuilder();
                     builder.environment().put("ES_JAVA_OPTS", esJavaOpts);
+                    javaHome.ifNeedBeSet(javaHomeValue -> builder.environment().put("JAVA_HOME", javaHomeValue));
                     builder.redirectErrorStream(true);
                     builder.command(elasticExecutable());
                     elastic = builder.start();

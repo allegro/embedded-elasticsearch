@@ -34,6 +34,7 @@ public final class EmbeddedElastic {
     private ElasticServer elasticServer;
     private ElasticRestClient elasticRestClient;
     private volatile boolean started = false;
+    private final JavaHomeOption javaHome;
 
     public static Builder builder() {
         return new Builder();
@@ -41,13 +42,14 @@ public final class EmbeddedElastic {
 
     private EmbeddedElastic(String esJavaOpts, InstanceSettings instanceSettings,
                             IndicesDescription indicesDescription, TemplatesDescription templatesDescription,
-                            InstallationDescription installationDescription, long startTimeoutInMs) {
+                            InstallationDescription installationDescription, long startTimeoutInMs, JavaHomeOption javaHome) {
         this.esJavaOpts = esJavaOpts;
         this.instanceSettings = instanceSettings;
         this.indicesDescription = indicesDescription;
         this.templatesDescription = templatesDescription;
         this.installationDescription = installationDescription;
         this.startTimeoutInMs = startTimeoutInMs;
+        this.javaHome = javaHome;
     }
 
     /**
@@ -71,7 +73,7 @@ public final class EmbeddedElastic {
         File executableFile = elasticSearchInstaller.getExecutableFile();
         File installationDirectory = elasticSearchInstaller.getInstallationDirectory();
         elasticServer = new ElasticServer(esJavaOpts, installationDirectory, executableFile, startTimeoutInMs,
-                installationDescription.isCleanInstallationDirectoryOnStop());
+                installationDescription.isCleanInstallationDirectoryOnStop(), javaHome);
     }
 
     private void startElastic() throws IOException, InterruptedException {
@@ -269,6 +271,7 @@ public final class EmbeddedElastic {
         private int downloaderConnectionTimeoutInMs = 3_000;
         private int downloaderReadTimeoutInMs = 300_000;
         private Proxy downloadProxy = null;
+        private JavaHomeOption javaHome = JavaHomeOption.useSystem();
 
         private Builder() {
         }
@@ -399,7 +402,12 @@ public final class EmbeddedElastic {
             downloadProxy = proxy;
             return this;
         }
-        
+
+        public Builder withJavaHome(JavaHomeOption javaHome) {
+            this.javaHome = javaHome;
+            return this;
+        }
+
         public EmbeddedElastic build() {
             require(installationSource != null, "You must specify elasticsearch version, or download url");
             return new EmbeddedElastic(
@@ -408,7 +416,8 @@ public final class EmbeddedElastic {
                     new IndicesDescription(indices),
                     new TemplatesDescription(templates),
                     new InstallationDescription(installationSource, downloadDirectory, installationDirectory, cleanInstallationDirectoryOnStop, plugins, downloaderConnectionTimeoutInMs, downloaderReadTimeoutInMs, downloadProxy),
-                    startTimeoutInMs);
+                    startTimeoutInMs,
+                    javaHome);
         }
 
     }
