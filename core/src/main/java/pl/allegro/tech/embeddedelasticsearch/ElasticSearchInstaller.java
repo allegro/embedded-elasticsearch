@@ -61,7 +61,8 @@ class ElasticSearchInstaller {
     private void installElastic(Path downloadedTo) throws IOException {
         File destination = getInstallationDirectory().getParentFile();
         FileUtils.forceDelete(getInstallationDirectory());
-        logger.info("Installing Elasticsearch" + " into " + destination + "...");
+        logger.info("Installing Elasticsearch into {}... - version: {} - oss flavor: {}", destination,
+                installationDescription.getVersion(), installationDescription.isOssFlavor());
         try {
             unzip(downloadedTo, destination);
             logger.info("Done");

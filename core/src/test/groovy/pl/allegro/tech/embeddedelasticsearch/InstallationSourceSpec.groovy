@@ -14,6 +14,19 @@ class InstallationSourceSpec extends Specification {
             resolvedUrl != null
     }
 
+    def "should construct valid url for oss flavor"() {
+        given:
+            final expectedVersion = "6.3.0"
+            final installationSource = new InstallFromVersion("oss-6.3.0")
+        when:
+            final resolvedUrl = installationSource.resolveDownloadUrl()
+            final determinedVersion = installationSource.determineVersion()
+        then:
+            resolvedUrl == new URL("https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-oss-6.3.0.zip")
+            determinedVersion == expectedVersion
+            installationSource.isOssFlavor()
+    }
+
     def "should extract properly version from normal url"() {
         given:
             final expectedVersion = "2.3.4"
@@ -30,11 +43,13 @@ class InstallationSourceSpec extends Specification {
             final extractedVersion = new InstallFromDirectUrl(new URL(url)).determineVersion()
         then:
             extractedVersion == version
+            ossFlavor == ossFlavor
         where:
-            url                                                                   | version
-            "http://elasticsearch-download.example.com/elasticsearch-4.0.0.zip"   | "4.0.0"
-            "http://example.com/elasticsearch-10.0.0-SNAPSHOT-fix-branch-123.zip" | "10.0.0-SNAPSHOT-fix-branch-123"
-            "http://example.com/abc-5.0.0.zip"                                    | "5.0.0"
+            url                                                                   | version | ossFlavor
+            "http://elasticsearch-download.example.com/elasticsearch-4.0.0.zip"   | "4.0.0" | false
+            "http://example.com/elasticsearch-10.0.0-SNAPSHOT-fix-branch-123.zip" | "10.0.0-SNAPSHOT-fix-branch-123" | false
+            "http://example.com/abc-5.0.0.zip"                                    | "5.0.0" | false
+            "http://example.com/abc-oss-5.0.0.zip"                                | "5.0.0" | true
     }
 
     def "should throw exception when version is missing in url"() {

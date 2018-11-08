@@ -48,6 +48,10 @@ class InstallationDescription {
         return installationSource.resolveDownloadUrl();
     }
 
+    boolean isOssFlavor() {
+        return installationSource.isOssFlavor();
+    }
+
     List<Plugin> getPlugins() {
         return plugins;
     }

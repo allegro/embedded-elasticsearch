@@ -10,10 +10,12 @@ class InstallFromVersion implements InstallationSource {
 
     private final URL downloadUrl;
     private final String version;
+    private final boolean ossFlavor;
 
     public InstallFromVersion(String version) {
-        this.version = version;
-        this.downloadUrl = urlFromVersion(version);
+        this.version = version.replaceFirst("oss-", "");
+        this.ossFlavor = version.startsWith("oss-");
+        this.downloadUrl = urlFromVersion();
     }
 
     @Override
@@ -26,10 +28,16 @@ class InstallFromVersion implements InstallationSource {
         return downloadUrl;
     }
 
-    private URL urlFromVersion(String version) {
+    @Override
+    public boolean isOssFlavor() {
+        return ossFlavor;
+    }
+
+    private URL urlFromVersion() {
         ElsDownloadUrl elsDownloadUrl = ElsDownloadUrl.getByVersion(version);
         try {
-            return new URL(StringUtils.replace(elsDownloadUrl.downloadUrl, "{VERSION}", version));
+            String versionToUse = ossFlavor ? "oss-" + version : version;
+            return new URL(StringUtils.replace(elsDownloadUrl.downloadUrl, "{VERSION}", versionToUse));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

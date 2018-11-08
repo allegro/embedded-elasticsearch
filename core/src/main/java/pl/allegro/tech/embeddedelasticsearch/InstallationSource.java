@@ -6,5 +6,7 @@ interface InstallationSource {
     String determineVersion();
 
     URL resolveDownloadUrl();
+
+    boolean isOssFlavor();
 }
 

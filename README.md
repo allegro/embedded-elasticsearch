@@ -39,9 +39,9 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 
 | Method | Description |
 | ------------- | ------------- |
-| `withElasticVersion(String version)` | version of Elasticsearch; based on that version download url to official Elasticsearch repository will be created |
-| `withDownloadUrl(URL downloadUrl)` | if you prefer to download Elasticsearch from a different location than official repositories you can do that using this method |
-| `withInResourceLocation(String inResourcePath)` | you can also have your Elasticsearch package inside resource directory, specify it's location with this option  |
+| `withElasticVersion(String version)` | version of Elasticsearch; based on that version download url to official Elasticsearch repository will be created. Prefix with `oss-` to download the `oss` flavor of Elasticsearch. |
+| `withDownloadUrl(URL downloadUrl)` | if you prefer to download Elasticsearch from a different location than official repositories you can do that using this method. Include the `oss-` prefix in the filename to interpret the url as the `oss` flavor. |
+| `withInResourceLocation(String inResourcePath)` | you can also have your Elasticsearch package inside resource directory, specify it's location with this option. Include the `oss-` prefix in the filename to interpret the url as the `oss` flavor. |
 | `withSetting(String key, Object value)` | setting name and value as in elasticsearch.yml file |
 | `withPlugin(String expression)` | plugin that should be installed into Elasticsearch; treat expression as argument to `./elasticsearch-plugin install <expression>` command; use multiple times for multiple plugins |
 | `withIndex(String indexName, IndexSettings indexSettings)` | specify index that should be created and managed by EmbeddedElastic |
