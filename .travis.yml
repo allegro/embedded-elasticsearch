@@ -1,8 +1,10 @@
 ---
 language: java
-script: ./gradlew clean check --info
+script: 
+   jdk_switcher use oraclejdk8
+   ./gradlew clean check --info
+   jdk_switcher use openjdk10
+   ./gradlew clean :es-63-test:check --info
 jdk:
-  - openjdk7
   - oraclejdk8
-  - oraclejdk9
   - openjdk10
