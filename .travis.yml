@@ -3,8 +3,7 @@ language: java
 script: 
    - jdk_switcher use oraclejdk8
    - ./gradlew clean check --info
-   - jdk_switcher use openjdk10
+   - jdk_switcher use oraclejdk11
    - ./gradlew clean :es-63-test:check --info
 jdk:
   - oraclejdk8
-  - openjdk10
