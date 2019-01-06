@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
-import static pl.allegro.tech.embeddedelasticsearch.Require.require;
 
 public final class EmbeddedElastic {
 
@@ -401,7 +400,17 @@ public final class EmbeddedElastic {
         }
         
         public EmbeddedElastic build() {
-            require(installationSource != null, "You must specify elasticsearch version, or download url");
+
+            if (installationSource == null ) {
+                final String autoDetectedVersion = AutoDetectElasticVersion.detect();
+              if (autoDetectedVersion != null) {
+                  installationSource = new InstallFromVersion(autoDetectedVersion);
+              } else {
+                  throw new InvalidSetupException("Unable to auto-detect elasticsearch version. " +
+                      "You must specify elasticsearch version, or download url");
+              }
+            }
+
             return new EmbeddedElastic(
                     esJavaOpts,
                     settings,
