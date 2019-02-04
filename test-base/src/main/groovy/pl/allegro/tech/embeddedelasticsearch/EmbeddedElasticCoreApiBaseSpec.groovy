@@ -3,8 +3,19 @@ package pl.allegro.tech.embeddedelasticsearch
 import org.skyscreamer.jsonassert.JSONAssert
 import spock.lang.Specification
 
-import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.*
-
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.AMERICAN_PSYCHO
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.AUDIO_BOOK_INDEX_TYPE
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOKS_INDEX_NAME
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CARS_INDEX_NAME
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CAR_INDEX_TYPE
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CUJO
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.FIAT_126p
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.MISERY
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOK_ALIAS_1
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOK_ALIAS_2
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.toJson
 abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
     def "should index document"() {
