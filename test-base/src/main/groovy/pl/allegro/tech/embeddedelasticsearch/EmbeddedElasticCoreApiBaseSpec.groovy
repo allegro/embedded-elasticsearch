@@ -13,8 +13,9 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.FIAT_126p
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.MISERY
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOK_ALIAS_1
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOK_ALIAS_2
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.toJson
-
 abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
     def "should index document"() {
@@ -79,6 +80,22 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
         then: "recreated indices should be empty"
         fetchAllDocuments().size() == 0
+    }
+
+    def "should fetch books from aliases"() {
+        given:
+        index(SHINING)
+        index(CUJO)
+
+        when:
+        final result1 = fetchAllDocuments(BOOK_ALIAS_1)
+
+        and:
+        final result2 = fetchAllDocuments(BOOK_ALIAS_2)
+
+        then:
+        result1.size() == 2
+        result2.size() == 2
     }
 
     void assertJsonsEquals(String expectedJson, String actualJson) {
