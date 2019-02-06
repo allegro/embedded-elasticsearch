@@ -11,6 +11,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,31 @@ public final class EmbeddedElastic {
      */
     public void index(String indexName, String indexType, List<CharSequence> jsons) {
         elasticRestClient.indexWithIds(indexName, indexType, jsons.stream().map(json -> new DocumentWithId(null, json.toString())).collect(Collectors.toList()));
+    }
+
+    /**
+     * Index single document document
+     *
+     * @param indexName target index
+     * @param indexType target index name
+     * @param docId     document id
+     * @param json      document represented as JSON
+     */
+    public void index(String indexName, String indexType, String docId, String json) {
+        index(indexName, indexType, docId, null, json);
+    }
+
+    /**
+     * Index single document document with routing
+     *
+     * @param indexName target index
+     * @param indexType target index name
+     * @param docId     document id
+     * @param routing   routing
+     * @param json      document represented as JSON
+     */
+    public void index(String indexName, String indexType, String docId, String routing, String json) {
+        elasticRestClient.indexWithIds(indexName, indexType, Collections.singletonList(new DocumentWithId(docId, json, routing)));
     }
 
     /**

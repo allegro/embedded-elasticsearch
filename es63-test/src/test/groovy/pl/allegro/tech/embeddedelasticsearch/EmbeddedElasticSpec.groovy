@@ -64,6 +64,18 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiBaseSpec {
     }
 
     @Override
+    List<String> fetchAllDocuments(String indexName, String typeName, String routing) {
+        final searchRequest = new SearchRequest(indexName)
+                .types(typeName)
+                .routing(routing)
+                .source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()))
+
+        client.search(searchRequest)
+                .hits.hits.toList()
+                .collect { it.sourceAsString }
+    }
+
+    @Override
     List<String> searchByTerm(String indexName, String typeName, String fieldName, String value) {
         final searchRequest = new SearchRequest()
                 .source(new SearchSourceBuilder().query(QueryBuilders.termQuery(fieldName, value)));

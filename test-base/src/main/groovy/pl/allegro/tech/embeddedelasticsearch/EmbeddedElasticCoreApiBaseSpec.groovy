@@ -9,8 +9,10 @@ import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOKS_INDEX_NA
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CARS_INDEX_NAME
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CAR_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CUJO
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.CUJO
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.FIAT_126p
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.MISERY
+import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.PAPER_BOOK_INDEX_TYPE
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.SHINING
 import static pl.allegro.tech.embeddedelasticsearch.SampleIndices.BOOK_ALIAS_1
@@ -98,6 +100,34 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
         result2.size() == 2
     }
 
+    def "should index a document using specified routing"() {
+        given:
+        def id1 = UUID.randomUUID().toString()
+        def id2 = UUID.randomUUID().toString()
+
+        final doc1 = toJson(SHINING)
+        final doc2 = toJson(CUJO)
+
+        index(SHINING, id1, "bookShard1")
+        index(CUJO, id2, "bookShard2")
+
+        when:
+        final result1 = fetchAllDocuments(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, "bookShard1")
+
+        and:
+        final result2 = fetchAllDocuments(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, "bookShard2")
+
+        and:
+        final resultAll = fetchAllDocuments(BOOKS_INDEX_NAME)
+
+        then:
+        result1.size() == 1
+        assertJsonsEquals(doc1, result1[0])
+        result2.size() == 1
+        assertJsonsEquals(doc2, result2[0])
+        resultAll.size() == 2
+    }
+
     void assertJsonsEquals(String expectedJson, String actualJson) {
         JSONAssert.assertEquals(expectedJson, actualJson, false)
     }
@@ -108,6 +138,10 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
     void index(SampleIndices.PaperBook book) {
         embeddedElastic.index(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(book))
+    }
+
+    void index(SampleIndices.PaperBook book, String docId, String routing) {
+        embeddedElastic.index(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, docId, routing, toJson(book))
     }
 
     void index(SampleIndices.AudioBook book) {
@@ -121,6 +155,8 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
     abstract List<String> fetchAllDocuments(String indexName)
 
     abstract List<String> fetchAllDocuments(String indexName, String typeName)
+
+    abstract List<String> fetchAllDocuments(String indexName, String typeName, String routing)
 
     abstract List<String> searchByTerm(String indexName, String typeName, String fieldName, String value)
 
