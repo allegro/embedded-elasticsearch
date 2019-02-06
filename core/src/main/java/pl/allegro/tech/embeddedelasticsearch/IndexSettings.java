@@ -25,7 +25,13 @@ public class IndexSettings {
         return new Builder();
     }
 
-    public IndexSettings(List<TypeWithMapping> types, Optional<String> settings, Optional<String> aliases) {
+    public IndexSettings(List<TypeWithMapping> types, Optional<String> settings) {
+        this.types = types;
+        this.settings = rawToJson(settings);
+        this.aliases = Optional.empty();
+    }
+
+    private IndexSettings(List<TypeWithMapping> types, Optional<String> settings, Optional<String> aliases) {
         this.types = types;
         this.settings = rawToJson(settings);
         this.aliases = rawToJson(aliases);
