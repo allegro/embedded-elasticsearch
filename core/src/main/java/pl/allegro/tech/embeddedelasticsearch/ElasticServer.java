@@ -114,13 +114,13 @@ class ElasticServer {
 
     private void waitForElasticToStart() throws InterruptedException {
         logger.info("Waiting for ElasticSearch to start...");
-        long waitUtil = System.currentTimeMillis() + startTimeoutInMs;
+        long waitUntil = System.currentTimeMillis() + startTimeoutInMs;
 
         synchronized (startedLock) {
             boolean timedOut = false;
             while (!started && !timedOut && (elastic == null || elastic.isAlive())) {
                 startedLock.wait(100);
-                timedOut = System.currentTimeMillis() > waitUtil;
+                timedOut = System.currentTimeMillis() > waitUntil;
             }
             if (!started) {
                 String message = timedOut ? "Failed to start elasticsearch within time-out" : "Failed to start elasticsearch. Check previous logs for details";
