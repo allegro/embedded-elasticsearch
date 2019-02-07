@@ -135,26 +135,30 @@ class ElasticRestClient {
         }
     }
 
-    void indexWithIds(String indexName, String indexType, Collection<DocumentWithId> idJsonMap) {
-        String bulkRequestBody = idJsonMap.stream()
-                .flatMap(json -> Stream.of(indexMetadataJsonWithId(json.getId(), json.getRouting()), json.getDocument()))
+    void bulkIndex(Collection<IndexRequest> indexRequests) {
+        String bulkRequestBody = indexRequests.stream()
+                .flatMap(request ->
+                    Stream.of(
+                            indexMetadataJson(request.getIndexName(), request.getIndexType(), request.getId(), request.getRouting()),
+                            request.getJson()
+                    )
+                )
                 .map((jsonNodes) -> jsonNodes.replace('\n', ' ').replace('\r', ' '))
                 .collect(joining("\n")) + "\n";
 
-        HttpPost request = new HttpPost(url("/" + indexName + "/" + indexType + "/_bulk"));
-        request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
-        request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
-        httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Request finished with error"));
-        refresh();
+        performBulkRequest(url("/_bulk"), bulkRequestBody);
     }
 
-    private String indexMetadataJsonWithId(String id) {
-        return indexMetadataJsonWithId(id, null);
-    }
-
-    private String indexMetadataJsonWithId(String id, String routing) {
-
+    private String indexMetadataJson(String indexName, String indexType, String id, String routing) {
         StringJoiner joiner = new StringJoiner(",");
+
+        if(indexName != null) {
+            joiner.add("\"_index\": \"" + indexName + "\"");
+        }
+
+        if(indexType != null) {
+            joiner.add("\"_type\": \"" + indexType + "\"");
+        }
 
         if(id != null) {
             joiner.add("\"_id\": \"" + id + "\"");
@@ -174,6 +178,14 @@ class ElasticRestClient {
         } finally {
             request.releaseConnection();
         }
+    }
+
+    private void performBulkRequest(String requestUrl, String bulkRequestBody) {
+        HttpPost request = new HttpPost(requestUrl);
+        request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
+        request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
+        httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Request finished with error"));
+        refresh();
     }
 
     private String url(String path) {
