@@ -77,6 +77,12 @@ class ElasticServer {
                 synchronized (this) {
                     ProcessBuilder builder = new ProcessBuilder();
                     builder.environment().put("ES_JAVA_OPTS", esJavaOpts);
+                    if (builder.environment().containsKey("ES_HOME")) {
+                        builder.environment().remove("ES_HOME");
+                    }
+                    if (builder.environment().containsKey("ES_PATH_CONF")) {
+                        builder.environment().remove("ES_PATH_CONF");
+                    }
                     javaHome.ifNeedBeSet(javaHomeValue -> builder.environment().put("JAVA_HOME", javaHomeValue));
                     builder.redirectErrorStream(true);
                     builder.command(elasticExecutable());
