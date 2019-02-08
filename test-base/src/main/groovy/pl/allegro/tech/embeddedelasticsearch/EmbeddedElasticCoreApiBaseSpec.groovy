@@ -101,7 +101,10 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
     def "should index document in a bulk"() {
         given:
-        index(new IndexRequest(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING), "id1"))
+        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING))
+                .withId("id1")
+                .build()
+        )
 
         when:
         final result = fetchAllDocuments()
@@ -114,8 +117,10 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
     def "should index documents in a bulk"() {
         given:
         index([
-                new IndexRequest(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING), "id1"),
-                new IndexRequest(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(FIAT_126p), "id2")
+                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING))
+                        .withId("id1").build(),
+                new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(FIAT_126p))
+                        .withId("id2").build()
         ])
 
         when:
@@ -128,8 +133,10 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
     def "should index a document using specified routing"() {
         given:
         index([
-                new IndexRequest(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING), "id1", "bookShard1"),
-                new IndexRequest(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(CUJO), "id2", "bookShard2")
+                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(SHINING))
+                        .withId("id1").withRouting("bookShard1").build(),
+                new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(CUJO))
+                        .withId("id2").withRouting("bookShard2").build(),
         ])
 
         when:
@@ -154,15 +161,15 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
     }
 
     void index(SampleIndices.Car car) {
-        index(new IndexRequest(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(car)))
+        index(new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(car)).build())
     }
 
     void index(SampleIndices.PaperBook book) {
-        index(new IndexRequest(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(book)))
+        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, PAPER_BOOK_INDEX_TYPE, toJson(book)).build())
     }
 
     void index(SampleIndices.AudioBook book) {
-        index(new IndexRequest(BOOKS_INDEX_NAME, AUDIO_BOOK_INDEX_TYPE, toJson(book)))
+        index(new IndexRequest.IndexRequestBuilder(BOOKS_INDEX_NAME, AUDIO_BOOK_INDEX_TYPE, toJson(book)).build())
     }
 
     void index(IndexRequest indexRequest) {

@@ -8,15 +8,7 @@ public class IndexRequest {
     private final String routing;
     private final String json;
 
-    public IndexRequest(String indexName, String indexType, String json) {
-        this(indexName, indexType, json, null, null);
-    }
-
-    public IndexRequest(String indexName, String indexType, String json, String id) {
-        this(indexName, indexType, json, id, null);
-    }
-
-    public IndexRequest(String indexName, String indexType, String json, String id, String routing) {
+    private IndexRequest(String indexName, String indexType, String json, String id, String routing) {
         this.indexName = indexName;
         this.indexType = indexType;
         this.id = id;
@@ -42,5 +34,49 @@ public class IndexRequest {
 
     public String getJson() {
         return json;
+    }
+
+    public static class IndexRequestBuilder {
+
+        private String indexName;
+        private String indexType;
+        private String id;
+        private String routing;
+        private String json;
+
+        public IndexRequestBuilder(final String indexName, final String indexType, final String json) {
+            this.indexName = indexName;
+            this.indexType = indexType;
+            this.json = json;
+        }
+
+        public IndexRequestBuilder withIndexName(String indexName) {
+            this.indexName = indexName;
+            return this;
+        }
+
+        public IndexRequestBuilder withIndexType(String indexType) {
+            this.indexType = indexType;
+            return this;
+        }
+
+        public IndexRequestBuilder withId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public IndexRequestBuilder withRouting(String routing) {
+            this.routing = routing;
+            return this;
+        }
+
+        public IndexRequestBuilder withJson(String json) {
+            this.json = json;
+            return this;
+        }
+
+        public IndexRequest build() {
+            return new IndexRequest(indexName, indexType, json, id, routing);
+        }
     }
 }

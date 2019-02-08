@@ -107,7 +107,9 @@ public final class EmbeddedElastic {
     public void index(String indexName, String indexType, Map<CharSequence, CharSequence> idJsonMap) {
         index(
                 idJsonMap.entrySet().stream()
-                        .map(entry -> new IndexRequest(indexName, indexType, entry.getValue().toString(), entry.getKey().toString()))
+                        .map(entry -> new IndexRequest.IndexRequestBuilder(indexName, indexType, entry.getValue().toString())
+                                .withId(entry.getKey().toString()).build()
+                        )
                         .collect(toList())
         );
     }
@@ -122,7 +124,7 @@ public final class EmbeddedElastic {
     public void index(String indexName, String indexType, String... json) {
         index(
                 Arrays.stream(json)
-                        .map(item -> new IndexRequest(indexName, indexType, item))
+                        .map(item -> new IndexRequest.IndexRequestBuilder(indexName, indexType, item).build())
                         .collect(toList())
         );
     }
@@ -137,7 +139,7 @@ public final class EmbeddedElastic {
     public void index(String indexName, String indexType, List<CharSequence> jsons) {
         index(
                 jsons.stream()
-                        .map(json -> new IndexRequest(indexName, indexType, json.toString()))
+                        .map(json -> new IndexRequest.IndexRequestBuilder(indexName, indexType, json.toString()).build())
                         .collect(toList())
         );
     }
@@ -145,7 +147,7 @@ public final class EmbeddedElastic {
     /**
      * Index single document document with routing
      *
-     * @param indexRequests document to index along with metadata
+     * @param indexRequests document to be indexed along with metadata
      */
     public void index(List<IndexRequest> indexRequests) {
         elasticRestClient.bulkIndex(indexRequests);
