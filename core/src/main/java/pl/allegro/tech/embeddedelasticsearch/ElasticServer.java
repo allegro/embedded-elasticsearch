@@ -33,13 +33,15 @@ class ElasticServer {
     private volatile int pid = -1;
     private volatile int httpPort = -1;
     private volatile int transportTcpPort = -1;
+    private JavaHomeOption javaHome;
 
-    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop) {
+    ElasticServer(String esJavaOpts, File installationDirectory, File executableFile, long startTimeoutInMs, boolean cleanInstallationDirectoryOnStop, JavaHomeOption javaHome) {
         this.esJavaOpts = esJavaOpts;
         this.installationDirectory = installationDirectory;
         this.executableFile = executableFile;
         this.startTimeoutInMs = startTimeoutInMs;
         this.cleanInstallationDirectoryOnStop = cleanInstallationDirectoryOnStop;
+        this.javaHome = javaHome;
     }
 
     void start() throws InterruptedException {
@@ -75,6 +77,7 @@ class ElasticServer {
                 synchronized (this) {
                     ProcessBuilder builder = new ProcessBuilder();
                     builder.environment().put("ES_JAVA_OPTS", esJavaOpts);
+                    javaHome.ifNeedBeSet(javaHomeValue -> builder.environment().put("JAVA_HOME", javaHomeValue));
                     builder.redirectErrorStream(true);
                     builder.command(elasticExecutable());
                     elastic = builder.start();
@@ -111,13 +114,13 @@ class ElasticServer {
 
     private void waitForElasticToStart() throws InterruptedException {
         logger.info("Waiting for ElasticSearch to start...");
-        long waitUtil = System.currentTimeMillis() + startTimeoutInMs;
+        long waitUntil = System.currentTimeMillis() + startTimeoutInMs;
 
         synchronized (startedLock) {
             boolean timedOut = false;
             while (!started && !timedOut && (elastic == null || elastic.isAlive())) {
                 startedLock.wait(100);
-                timedOut = System.currentTimeMillis() > waitUtil;
+                timedOut = System.currentTimeMillis() > waitUntil;
             }
             if (!started) {
                 String message = timedOut ? "Failed to start elasticsearch within time-out" : "Failed to start elasticsearch. Check previous logs for details";

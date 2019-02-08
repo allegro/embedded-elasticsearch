@@ -51,6 +51,7 @@ And that's all, you can connect to your embedded-elastic instance on specified p
 | `withDownloadDirectory(File downloadDirectory)` | specify custom download directory where downloaded distribution packages will be saved |
 | `withCleanInstallationDirectoryOnStop(boolean cleanInstallationDirectoryOnStop)` | specify whether clean the installation directory after Elasticsearch stop |
 | `withEsJavaOpts(String javaOpts)` | value of `ES_JAVA_OPTS` variable to be set for Elasticsearch process |
+| `withJavaHome(JavaHomeOption javaHomeOption)` | select java environment to run in. For available options see below |
 | `getTransportTcpPort()` | get transport tcp port number used by Elasticsearch instance |
 | `getHttpPort()` | get http port number used by Elasticsearch instance |
 | `withDownloadProxy(Proxy proxy)` | proxy that should be used for downloading Elasticsearch package |
@@ -63,6 +64,16 @@ Available `IndexSettings.Builder` options
 | ------------- | ------------- |
 | `withType(String type, String mapping)` | specify type and it's mappings |
 | `withSettings(String settings)` | specify index settings |
+
+
+Availabe `JavaHomeOption` options
+
+| Method | Description |
+| ------------- | ------------- |
+| `useSystem()` | default behavior, lets elasticsearch startup script determine the JRE to run in |
+| `inheritTestSuite()` | use the same JRE as the process starting it |
+| `path(String path)` | manually set the path of the JRE to execute the embedded elastic |
+
 
 ## Available operations
 
