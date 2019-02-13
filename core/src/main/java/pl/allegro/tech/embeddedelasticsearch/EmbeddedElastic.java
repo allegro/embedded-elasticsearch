@@ -11,6 +11,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,9 +105,13 @@ public final class EmbeddedElastic {
      * @param idJsonMap map where keys are documents ids and values are documents represented as JSON
      */
     public void index(String indexName, String indexType, Map<CharSequence, CharSequence> idJsonMap) {
-        elasticRestClient.indexWithIds(indexName, indexType, idJsonMap.entrySet().stream()
-                .map(entry -> new DocumentWithId(entry.getKey().toString(), entry.getValue().toString()))
-                .collect(toList()));
+        index(
+                idJsonMap.entrySet().stream()
+                        .map(entry -> new IndexRequest.IndexRequestBuilder(indexName, indexType, entry.getValue().toString())
+                                .withId(entry.getKey().toString()).build()
+                        )
+                        .collect(toList())
+        );
     }
 
     /**
@@ -117,7 +122,11 @@ public final class EmbeddedElastic {
      * @param json      document represented as JSON
      */
     public void index(String indexName, String indexType, String... json) {
-        index(indexName, indexType, Arrays.asList(json));
+        index(
+                Arrays.stream(json)
+                        .map(item -> new IndexRequest.IndexRequestBuilder(indexName, indexType, item).build())
+                        .collect(toList())
+        );
     }
 
     /**
@@ -128,7 +137,20 @@ public final class EmbeddedElastic {
      * @param jsons     documents represented as JSON
      */
     public void index(String indexName, String indexType, List<CharSequence> jsons) {
-        elasticRestClient.indexWithIds(indexName, indexType, jsons.stream().map(json -> new DocumentWithId(null, json.toString())).collect(Collectors.toList()));
+        index(
+                jsons.stream()
+                        .map(json -> new IndexRequest.IndexRequestBuilder(indexName, indexType, json.toString()).build())
+                        .collect(toList())
+        );
+    }
+
+    /**
+     * Index single document document with routing
+     *
+     * @param indexRequests document to be indexed along with metadata
+     */
+    public void index(List<IndexRequest> indexRequests) {
+        elasticRestClient.bulkIndex(indexRequests);
     }
 
     /**
@@ -181,7 +203,7 @@ public final class EmbeddedElastic {
         elasticRestClient.createIndex(indexName);
     }
 
-    public void createTemplates(){
+    public void createTemplates() {
         elasticRestClient.createTemplates();
     }
 
@@ -219,12 +241,15 @@ public final class EmbeddedElastic {
     public void deleteTemplate(String templateName) {
         elasticRestClient.deleteTemplate(templateName);
     }
+
     /**
      * Create specified template. Note that you can specify only template from list of templates specified during EmbeddedElastic creation
      *
      * @param templateName template to create
      */
-    public void createTemplate(String templateName){ elasticRestClient.createTemplate(templateName);}
+    public void createTemplate(String templateName) {
+        elasticRestClient.createTemplate(templateName);
+    }
 
     /**
      * Refresh indices. Can be useful in tests that uses multiple threads
@@ -351,6 +376,7 @@ public final class EmbeddedElastic {
 
         /**
          * add a template that will be created after Elasticsearch cluster started
+         *
          * @param name
          * @param templateBody
          * @return
@@ -362,6 +388,7 @@ public final class EmbeddedElastic {
 
         /**
          * add a template that will be created after Elasticsearch cluster started
+         *
          * @param name
          * @param templateBody
          * @return

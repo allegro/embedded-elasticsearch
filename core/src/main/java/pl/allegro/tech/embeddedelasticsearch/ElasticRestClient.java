@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -134,25 +135,40 @@ class ElasticRestClient {
         }
     }
 
-    void indexWithIds(String indexName, String indexType, Collection<DocumentWithId> idJsonMap) {
-        String bulkRequestBody = idJsonMap.stream()
-                .flatMap(json -> Stream.of(indexMetadataJsonWithId(json.getId()), json.getDocument()))
+    void bulkIndex(Collection<IndexRequest> indexRequests) {
+        String bulkRequestBody = indexRequests.stream()
+                .flatMap(request ->
+                    Stream.of(
+                            indexMetadataJson(request.getIndexName(), request.getIndexType(), request.getId(), request.getRouting()),
+                            request.getJson()
+                    )
+                )
                 .map((jsonNodes) -> jsonNodes.replace('\n', ' ').replace('\r', ' '))
                 .collect(joining("\n")) + "\n";
 
-        HttpPost request = new HttpPost(url("/" + indexName + "/" + indexType + "/_bulk"));
-        request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
-        request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
-        httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Request finished with error"));
-        refresh();
+        performBulkRequest(url("/_bulk"), bulkRequestBody);
     }
 
-    private String indexMetadataJsonWithId(String id) {
-        if (id == null) {
-            return "{ \"index\": {} }";
-        } else {
-            return "{ \"index\": { \"_id\": \"" + id + "\"} }";
+    private String indexMetadataJson(String indexName, String indexType, String id, String routing) {
+        StringJoiner joiner = new StringJoiner(",");
+
+        if(indexName != null) {
+            joiner.add("\"_index\": \"" + indexName + "\"");
         }
+
+        if(indexType != null) {
+            joiner.add("\"_type\": \"" + indexType + "\"");
+        }
+
+        if(id != null) {
+            joiner.add("\"_id\": \"" + id + "\"");
+        }
+
+        if(routing != null) {
+            joiner.add("\"_routing\": \"" + routing + "\"");
+        }
+
+        return "{ \"index\": {" + joiner.toString() + "} }";
     }
 
     void refresh() {
@@ -162,6 +178,14 @@ class ElasticRestClient {
         } finally {
             request.releaseConnection();
         }
+    }
+
+    private void performBulkRequest(String requestUrl, String bulkRequestBody) {
+        HttpPost request = new HttpPost(requestUrl);
+        request.setHeader(new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json"));
+        request.setEntity(new StringEntity(bulkRequestBody, UTF_8));
+        httpClient.execute(request, (Consumer<CloseableHttpResponse>) response -> assertOk(response, "Request finished with error"));
+        refresh();
     }
 
     private String url(String path) {
@@ -184,25 +208,38 @@ class ElasticRestClient {
     }
 
     List<String> fetchAllDocuments(String... indices) {
+        return fetchAllDocuments(null, indices);
+    }
+
+    List<String> fetchAllDocuments(String routing, String... indices) {
         if (indices.length == 0) {
             return searchForDocuments(Optional.empty()).collect(toList());
         } else {
             return Stream.of(indices)
-                    .flatMap((index) -> searchForDocuments(Optional.of(index)))
+                    .flatMap((index) -> searchForDocuments(Optional.of(index), Optional.ofNullable(routing)))
                     .collect(toList());
         }
     }
-    
+
     private Stream<String> searchForDocuments(Optional<String> indexMaybe) {
-        String searchCommand = prepareQuery(indexMaybe);
+        return searchForDocuments(indexMaybe, Optional.empty());
+    }
+
+    private Stream<String> searchForDocuments(Optional<String> indexMaybe, Optional<String> routing) {
+        String searchCommand = prepareQuery(indexMaybe, routing);
         String body = fetchDocuments(searchCommand);
         return parseDocuments(body);
     }
 
-    private String prepareQuery(Optional<String> indexMaybe) {
+    private String prepareQuery(Optional<String> indexMaybe, Optional<String> routing) {
+
+        String routingQueryParam = routing
+                .map(r -> "?routing=" + r)
+                .orElse("");
+
         return indexMaybe
-                    .map(index -> "/" + index + "/_search")
-                    .orElse("/_search");
+                .map(index -> "/" + index + "/_search" + routingQueryParam)
+                .orElse("/_search");
     }
 
     private String fetchDocuments(String searchCommand) {

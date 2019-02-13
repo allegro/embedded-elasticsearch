@@ -71,6 +71,16 @@ class EmbeddedElasticSpec extends EmbeddedElasticCoreApiVersions5AndUnder {
     }
 
     @Override
+    List<String> fetchAllDocuments(String indexName, String typeName, String routing) {
+        client.prepareSearch(indexName)
+                .setTypes(typeName)
+                .setRouting(routing)
+                .execute().actionGet()
+                .hits.hits.toList()
+                .collect { it.sourceAsString }
+    }
+
+    @Override
     List<String> searchByTerm(String indexName, String typeName, String fieldName, String value) {
         client.prepareSearch(indexName)
                 .setTypes(typeName)
