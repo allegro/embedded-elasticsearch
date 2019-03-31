@@ -60,6 +60,37 @@ class InstallationDescription {
         return getVersion().startsWith("2.");
     }
 
+    /**
+     * Indicates whether a given version matches or is after a given reference version.
+     * @param version the version to test.
+     * @param referenceVersion the reference version.
+     * @return {@code true} if the given version matches or is after a given reference version, {@code false} otherwise.
+     */
+    static boolean versionMatchOrAfter(String version, String referenceVersion) {
+        String[] versionsSource = version.split("\\.");
+        String[] versionsTarget = referenceVersion.split("\\.");
+        for (int i = 0; i < versionsSource.length && i < versionsTarget.length; i++) {
+            String versionSource = versionsSource[i];
+            int index = -1;
+            if (i == versionsSource.length - 1) {
+                index = versionSource.indexOf('-');
+                if (index != -1) {
+                    versionSource = versionSource.substring(0, index);
+                }
+            }
+            int iVersionTarget = Integer.parseInt(versionsTarget[i]);
+            int iVersionSource = Integer.parseInt(versionSource);
+            if (iVersionTarget > iVersionSource || (index != -1 && iVersionTarget == iVersionSource)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    boolean versionMatchOrAfter(String startVersion) {
+        return versionMatchOrAfter(getVersion(), startVersion);
+    }
+
     boolean isCleanInstallationDirectoryOnStop() {
         return cleanInstallationDirectoryOnStop;
     }
