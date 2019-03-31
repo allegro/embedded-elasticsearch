@@ -58,6 +58,58 @@ abstract class PluginsInstallationBaseSpec extends Specification {
             embeddedElastic.stop()
     }
 
+    def "should reuse plugins on restart"() {
+        given:
+            final installationDirectory = new File(System.getProperty("java.io.tmpdir"), "embedded-elasticsearch-for-reuse")
+            installationDirectory.deleteDir()
+            baseEmbeddedElastic()
+                    .withCleanInstallationDirectoryOnStop(false)
+                    .withInstallationDirectory(installationDirectory)
+                    .withPlugin(pluginByUrlUrl())
+                    .build().start().stop()
+            final pluginCustomFile = new File(installationDirectory.listFiles()
+                    .findAll { it.isDirectory() }
+                    .find { it.name.startsWith("elasticsearch-")}, "plugins/" + pluginByUrlName() + "/foo.txt")
+            pluginCustomFile.createNewFile();
+            final embeddedElastic = baseEmbeddedElastic()
+                    .withCleanInstallationDirectoryOnStop(false)
+                    .withInstallationDirectory(installationDirectory)
+                    .withPlugin(pluginByUrlUrl())
+                    .build()
+
+        when:
+            embeddedElastic.start()
+
+        then:
+            pluginCustomFile.exists()
+
+        cleanup:
+            embeddedElastic?.stop()
+            installationDirectory.deleteDir()
+    }
+
+    def "should reuse only specified plugins on restart"() {
+        given:
+            baseEmbeddedElastic()
+                    .withCleanInstallationDirectoryOnStop(false)
+                    .withPlugin(pluginByUrlUrl())
+                    .withPlugin(pluginByName())
+                    .build().start().stop()
+            final embeddedElastic = baseEmbeddedElastic()
+                    .withCleanInstallationDirectoryOnStop(false)
+                    .withPlugin(pluginByName())
+                    .build()
+
+        when:
+            embeddedElastic.start()
+
+        then:
+            fetchInstalledPluginsList() == [pluginByNameName()].toSet()
+
+        cleanup:
+            embeddedElastic?.stop()
+    }
+
     abstract EmbeddedElastic.Builder baseEmbeddedElastic()
 
     Set<String> fetchInstalledPluginsList() {

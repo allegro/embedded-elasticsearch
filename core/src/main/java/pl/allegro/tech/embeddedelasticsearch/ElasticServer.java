@@ -1,5 +1,6 @@
 package pl.allegro.tech.embeddedelasticsearch;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,13 +81,17 @@ class ElasticServer {
                     javaHome.ifNeedBeSet(javaHomeValue -> builder.environment().put("JAVA_HOME", javaHomeValue));
                     builder.redirectErrorStream(true);
                     builder.command(elasticExecutable());
+                    ElasticServer.forceDeleteElasticTempDirectory();
                     elastic = builder.start();
                 }
-                BufferedReader outputStream = new BufferedReader(new InputStreamReader(elastic.getInputStream(), UTF_8));
-                String line;
-                while ((line = readLine(outputStream)) != null) {
-                    logger.info(line);
-                    parseElasticLogLine(line);
+                try (BufferedReader outputStream = new BufferedReader(new InputStreamReader(elastic.getInputStream(), UTF_8))) {
+                    String line;
+                    while ((line = readLine(outputStream)) != null) {
+                        logger.info(line);
+                        parseElasticLogLine(line);
+                    }
+                } finally {
+                	ElasticServer.forceDeleteElasticTempDirectory();
                 }
             } catch (Exception e) {
                 throw new EmbeddedElasticsearchStartupException(e);
@@ -218,5 +223,19 @@ class ElasticServer {
 
     int getTransportTcpPort() {
         return transportTcpPort;
+    }
+
+    /***
+     * Deletes if needed the temporary directory created by elastic search.
+     * @throws IOException if the directory could not be deleted.
+     */
+    static void forceDeleteElasticTempDirectory() throws IOException {
+        // Needed to workaround a bug in 6.3 and 6.4 that prevent calling the command
+        // several times otherwise we get a message of type:
+        // mktemp: cannot make temp dir /tmp/elasticsearch: File exists
+        File tmpDirectory = new File(System.getProperty("java.io.tmpdir"), "elasticsearch");
+        if (tmpDirectory.exists()) {
+            FileUtils.forceDelete(tmpDirectory);
+        }
     }
 }
