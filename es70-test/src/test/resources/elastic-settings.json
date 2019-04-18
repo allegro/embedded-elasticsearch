@@ -1,0 +1,14 @@
+{
+  "analysis": {
+    "analyzer": {
+      "custom-analyzer": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": [
+          "asciifolding",
+          "lowercase"
+        ]
+      }
+    }
+  }
+}

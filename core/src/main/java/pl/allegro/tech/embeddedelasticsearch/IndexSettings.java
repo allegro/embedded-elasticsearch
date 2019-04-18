@@ -111,15 +111,34 @@ public class IndexSettings {
     }
 
     public ObjectNode toJson() {
+        return toJson(false);
+    }
+
+    public ObjectNode toJson(boolean v7Format) {
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
         objectNode.set("settings", settings.orElse(OBJECT_MAPPER.createObjectNode()));
         objectNode.set("aliases", aliases.orElse(OBJECT_MAPPER.createObjectNode()));
-        ObjectNode mappingsObject = prepareMappingsObject();
+        ObjectNode mappingsObject = prepareMappingsObject(v7Format);
         objectNode.set("mappings", mappingsObject);
         return objectNode;
     }
 
-    private ObjectNode prepareMappingsObject() {
+    private ObjectNode prepareMappingsObject(boolean v7Format) {
+        if (v7Format) {
+            switch (types.size()) {
+                case 0:
+                    return OBJECT_MAPPER.createObjectNode();
+                case 1:
+                    JsonNode mapping = types.get(0).getMapping();
+                    if (mapping == null) {
+                        return OBJECT_MAPPER.createObjectNode();
+                    }
+                    return mapping.deepCopy();
+                default:
+                    throw new RuntimeException("Elasticsearch v7 and above only allow one type per index");
+            }
+        }
+
         ObjectNode mappingsObject = OBJECT_MAPPER.createObjectNode();
         types.forEach(type -> mappingsObject.set(type.getType(), type.getMapping()));
         return mappingsObject;

@@ -25,7 +25,7 @@ class InstallFromDirectUrl implements InstallationSource {
     }
 
     private String versionFromUrl(URL url) {
-        Pattern versionPattern = Pattern.compile("-([^/]*).zip");
+        Pattern versionPattern = Pattern.compile("-([^/]*?)(-(windows|linux|darwin)-x86_64)?.(zip|tar.gz)");
         Matcher matcher = versionPattern.matcher(url.toString());
         if (matcher.find()) {
             return matcher.group(1);

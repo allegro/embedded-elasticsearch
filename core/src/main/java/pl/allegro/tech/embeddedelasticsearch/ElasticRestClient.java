@@ -48,17 +48,17 @@ class ElasticRestClient {
         this.templatesDescription = templatesDescription;
     }
 
-    void createIndices() {
+    void createIndices(boolean onlyOneTypePerIndex) {
         waitForClusterYellow();
-        indicesDescription.getIndicesNames().forEach(this::createIndex);
+        indicesDescription.getIndicesNames().forEach((name) -> createIndex(name, onlyOneTypePerIndex));
     }
 
-    void createIndex(String indexName) {
+    void createIndex(String indexName, boolean onlyOneTypePerIndex) {
         if (!indexExists(indexName)) {
             HttpPut request = new HttpPut(url("/" + indexName));
             indicesDescription
                     .getIndexSettings(indexName)
-                    .ifPresent(indexSettings -> setIndexSettingsAsEntity(request, indexSettings));
+                    .ifPresent(indexSettings -> setIndexSettingsAsEntity(request, indexSettings, onlyOneTypePerIndex));
             httpClient.execute(request, response -> {
                 if (response.getStatusLine().getStatusCode() != 200) {
                     String responseBody = readBodySafely(response);
@@ -69,8 +69,8 @@ class ElasticRestClient {
         }
     }
 
-    private void setIndexSettingsAsEntity(HttpPut request, IndexSettings indexSettings) {
-        request.setEntity(new StringEntity(indexSettings.toJson().toString(), APPLICATION_JSON));
+    private void setIndexSettingsAsEntity(HttpPut request, IndexSettings indexSettings, boolean onlyOneTypePerIndex) {
+        request.setEntity(new StringEntity(indexSettings.toJson(onlyOneTypePerIndex).toString(), APPLICATION_JSON));
     }
 
     private boolean indexExists(String indexName) {
@@ -135,11 +135,11 @@ class ElasticRestClient {
         }
     }
 
-    void bulkIndex(Collection<IndexRequest> indexRequests) {
+    void bulkIndex(Collection<IndexRequest> indexRequests, boolean onlyOneTypePerIndex) {
         String bulkRequestBody = indexRequests.stream()
                 .flatMap(request ->
                     Stream.of(
-                            indexMetadataJson(request.getIndexName(), request.getIndexType(), request.getId(), request.getRouting()),
+                            indexMetadataJson(request.getIndexName(), request.getIndexType(), request.getId(), request.getRouting(), onlyOneTypePerIndex),
                             request.getJson()
                     )
                 )
@@ -149,14 +149,14 @@ class ElasticRestClient {
         performBulkRequest(url("/_bulk"), bulkRequestBody);
     }
 
-    private String indexMetadataJson(String indexName, String indexType, String id, String routing) {
+    private String indexMetadataJson(String indexName, String indexType, String id, String routing, boolean v7Format) {
         StringJoiner joiner = new StringJoiner(",");
 
         if(indexName != null) {
             joiner.add("\"_index\": \"" + indexName + "\"");
         }
 
-        if(indexType != null) {
+        if(indexType != null && !v7Format) {
             joiner.add("\"_type\": \"" + indexType + "\"");
         }
 

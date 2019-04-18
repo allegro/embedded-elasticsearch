@@ -6,7 +6,7 @@ import static java.util.concurrent.TimeUnit.MINUTES
 import static pl.allegro.tech.embeddedelasticsearch.PopularProperties.HTTP_PORT
 
 class SynchronicitySpec extends Specification {
-    static final ELASTIC_VERSION = "2.2.0"
+    static final ELASTIC_VERSION = "7.0.0"
     static final HTTP_PORT_VALUE = 9999
 
     def "should not throw exception on starting embedded instance more than once"() {

@@ -150,7 +150,7 @@ public final class EmbeddedElastic {
      * @param indexRequests document to be indexed along with metadata
      */
     public void index(List<IndexRequest> indexRequests) {
-        elasticRestClient.bulkIndex(indexRequests);
+        elasticRestClient.bulkIndex(indexRequests, installationDescription.versionIs7x());
     }
 
     /**
@@ -191,7 +191,7 @@ public final class EmbeddedElastic {
      * Create all indices
      */
     public void createIndices() {
-        elasticRestClient.createIndices();
+        elasticRestClient.createIndices(installationDescription.versionIs7x());
     }
 
     /**
@@ -200,7 +200,7 @@ public final class EmbeddedElastic {
      * @param indexName index to create
      */
     public void createIndex(String indexName) {
-        elasticRestClient.createIndex(indexName);
+        elasticRestClient.createIndex(indexName, installationDescription.versionIs7x());
     }
 
     public void createTemplates() {

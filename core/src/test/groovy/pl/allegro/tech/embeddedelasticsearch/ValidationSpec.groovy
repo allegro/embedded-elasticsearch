@@ -7,8 +7,8 @@ import static java.util.concurrent.TimeUnit.MINUTES
 
 class ValidationSpec extends Specification {
 
-    static final ELASTIC_VERSION = "2.2.0"
-    static final ELASTIC_DOWNLOAD_URL = new URL("https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/2.2.0/elasticsearch-2.2.0.zip")
+    static final ELASTIC_VERSION = "7.0.0"
+    static final ELASTIC_DOWNLOAD_URL = new URL("https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.0.0-linux-x86_64.tar.gz")
 
     def "should throw exception on missing elastic version and download url"() {
         when:

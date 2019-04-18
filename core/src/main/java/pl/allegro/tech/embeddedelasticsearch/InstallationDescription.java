@@ -60,6 +60,8 @@ class InstallationDescription {
         return getVersion().startsWith("2.");
     }
 
+    boolean versionIs7x() { return getVersion().startsWith("7."); }
+
     boolean isCleanInstallationDirectoryOnStop() {
         return cleanInstallationDirectoryOnStop;
     }
