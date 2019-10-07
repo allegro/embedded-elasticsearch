@@ -1,5 +1,6 @@
 package pl.allegro.tech.embeddedelasticsearch
 
+import groovy.json.JsonOutput
 import org.skyscreamer.jsonassert.JSONAssert
 import spock.lang.Specification
 
@@ -46,7 +47,7 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
         final document = toJson(FIAT_126p)
 
         when:
-        embeddedElastic.index(CARS_INDEX_NAME, CAR_INDEX_TYPE, ["$id": document])
+        index(CARS_INDEX_NAME, CAR_INDEX_TYPE, ["$id": document])
 
         then:
         final result = getById(CARS_INDEX_NAME, CAR_INDEX_TYPE, id)
@@ -162,6 +163,10 @@ abstract class EmbeddedElasticCoreApiBaseSpec extends Specification {
 
     void index(SampleIndices.Car car) {
         index(new IndexRequest.IndexRequestBuilder(CARS_INDEX_NAME, CAR_INDEX_TYPE, toJson(car)).build())
+    }
+
+    void index(String indexName, String indexType, Map idJsonMap) {
+        embeddedElastic.index(indexName, indexType, idJsonMap)
     }
 
     void index(SampleIndices.PaperBook book) {
