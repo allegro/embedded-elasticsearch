@@ -17,31 +17,65 @@ public class IndexSettings {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    private final Optional<JsonNode> mappings;
     private final List<TypeWithMapping> types;
     private final Optional<JsonNode> settings;
     private final Optional<JsonNode> aliases;
-
+    private boolean includeTypeName=false;
     public static Builder builder() {
         return new Builder();
     }
 
-    public IndexSettings(List<TypeWithMapping> types, Optional<String> settings) {
+    private IndexSettings(List<TypeWithMapping> types, Optional<String> settings, Optional<String> aliases) {
+        this.mappings = rawToJson(Optional.of("{}"));
         this.types = types;
         this.settings = rawToJson(settings);
         this.aliases = Optional.empty();
     }
 
-    private IndexSettings(List<TypeWithMapping> types, Optional<String> settings, Optional<String> aliases) {
-        this.types = types;
+    public IndexSettings(Optional<String>  mapping, Optional<String> settings) {
+        includeTypeName = true;
+        this.mappings = rawToJson(mapping);
+        this.settings = rawToJson(settings);
+        this.aliases = Optional.empty();
+        this.types = new ArrayList<>();
+    }
+
+    private IndexSettings(Optional<String> mapping, Optional<String> settings, Optional<String> aliases) {
+        this.mappings = rawToJson(mapping);
+        includeTypeName = true;
         this.settings = rawToJson(settings);
         this.aliases = rawToJson(aliases);
+        this.types = new ArrayList<>();
     }
 
     public static class Builder {
 
-        private final List<TypeWithMapping> types = new ArrayList<>();
+        private Optional<String> mapping  = Optional.empty();
         private Optional<String> settings = Optional.empty();
         private Optional<String> aliases = Optional.empty();
+        private final List<TypeWithMapping> types = new ArrayList<>();
+
+        /**
+         * Type with mappings to create with index
+         *
+         * @param mapping mappings for created type
+         */
+        public Builder withMapping(Object mapping) throws IOException {
+            String mappingString;
+            if (mapping == null) {
+                return this;
+            }
+            else if (mapping instanceof InputStream) {
+                InputStream mappingStream = (InputStream) mapping;
+                mappingString = IOUtils.toString(mappingStream, UTF_8);
+            }
+            else {
+                mappingString = (String) mapping;
+            }
+            this.mapping = Optional.of(mappingString);
+            return this;
+        }
 
         /**
          * Specify type inside created index
@@ -52,6 +86,7 @@ public class IndexSettings {
         public Builder withType(String type, InputStream mapping) throws IOException {
             return withType(type, IOUtils.toString(mapping, UTF_8));
         }
+
 
         /**
          * Type with mappings to create with index
@@ -106,7 +141,7 @@ public class IndexSettings {
          * @return IndexSettings with specified parameters
          */
         public IndexSettings build() {
-            return new IndexSettings(types, settings, aliases);
+            return new IndexSettings(mapping, settings, aliases);
         }
     }
 
@@ -114,8 +149,15 @@ public class IndexSettings {
         ObjectNode objectNode = new ObjectMapper().createObjectNode();
         objectNode.set("settings", settings.orElse(OBJECT_MAPPER.createObjectNode()));
         objectNode.set("aliases", aliases.orElse(OBJECT_MAPPER.createObjectNode()));
-        ObjectNode mappingsObject = prepareMappingsObject();
-        objectNode.set("mappings", mappingsObject);
+
+        if (includeTypeName){
+            objectNode.set("mappings",mappings.orElse(OBJECT_MAPPER.createObjectNode()));
+        }
+        else {
+            ObjectNode mappingsObject = prepareMappingsObject();
+            objectNode.set("mappings", mappingsObject);
+        }
+
         return objectNode;
     }
 
