@@ -63,6 +63,7 @@ Available `IndexSettings.Builder` options
 | Method | Description |
 | ------------- | ------------- |
 | `withType(String type, String mapping)` | specify type and it's mappings |
+| `withMapping(String mapping)` | starting from Elasticseatch 7, there is not more types, so when using an ES version 7.0 and above this method should be used insted of withType |
 | `withSettings(String settings)` | specify index settings |
 
 
