@@ -32,18 +32,21 @@ When you are done with creating it, you can start it real simple:
 ```java
 embeddedElastic.start()
 ```
-You can also use @Rule or @ClassRule to start embedded elastic.
 
+And that's all, you can connect to your embedded-elastic instance on specified port and use it in your tests.
+
+## Junit Rule
+
+You can also use `@Rule` or `@ClassRule` to start embedded elastic.
 Using this feature you do not have to worry about starting and stopping elastic in your tests.
-
-Simple setup:
+simple setup:
 
 ```java
 @ClassRule
 public static EmbeddedElasticRule embeddedElasticRule = new EmbeddedElasticRule("index_name", 9200);
 ```
 
-Custom Setup:
+custom Setup:
 
 ```java
 @ClassRule
@@ -59,7 +62,6 @@ public static EmbeddedElasticRule embeddedElasticRule = new EmbeddedElasticRule(
         .build());
 ```
 
-And that's all, you can connect to your embedded-elastic instance on specified port and use it in your tests.
 
 ## Available builder options
 
