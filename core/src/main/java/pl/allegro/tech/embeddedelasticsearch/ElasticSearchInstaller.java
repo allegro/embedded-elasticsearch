@@ -69,6 +69,10 @@ class ElasticSearchInstaller {
         logger.info("Installing Elasticsearch" + " into " + destination + "...");
         try {
             unzip(downloadedTo, destination);
+            File executable = getFile(getInstallationDirectory(), "bin", "elasticsearch");
+            if (!executable.canExecute()) {
+                executable.setExecutable(true);
+            }
             logger.info("Done");
         } catch (IOException e) {
             logger.info("Failure : " + e);
@@ -85,7 +89,7 @@ class ElasticSearchInstaller {
 
     private InputStream toStream(Path downloadedTo) throws IOException {
         InputStream result = new FileInputStream(downloadedTo.toFile());
-        if (downloadedTo.endsWith(".gz")) {
+        if (downloadedTo.toFile().getName().endsWith(".gz")) {
             result = new GZIPInputStream(result);
         }
         return new BufferedInputStream(result);
