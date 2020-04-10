@@ -69,9 +69,10 @@ class ElasticSearchInstaller {
         logger.info("Installing Elasticsearch" + " into " + destination + "...");
         try {
             unzip(downloadedTo, destination);
-            makeExecutable("elasticsearch");
-            makeExecutable("plugin");
-            makeExecutable("elasticsearch-plugin");
+            makeExecutable("bin", "elasticsearch");
+            makeExecutable("bin", "plugin");
+            makeExecutable("bin", "elasticsearch-plugin");
+            makeExecutable("modules", "x-pack", "x-pack-ml", "platform", "linux-x86_64", "bin", "controller");
             logger.info("Done");
         } catch (IOException e) {
             logger.info("Failure : " + e);
@@ -79,8 +80,8 @@ class ElasticSearchInstaller {
         }
     }
 
-    private void makeExecutable(String name) {
-        File executable = getFile(getInstallationDirectory(), "bin", name);
+    private void makeExecutable(String... names) {
+        File executable = getFile(getInstallationDirectory(), names);
         if (!executable.canExecute()) {
             executable.setExecutable(true);
         }
