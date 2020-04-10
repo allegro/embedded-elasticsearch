@@ -71,6 +71,7 @@ class ElasticSearchInstaller {
             unzip(downloadedTo, destination);
             makeExecutable("elasticsearch");
             makeExecutable("plugin");
+            makeExecutable("elasticsearch-plugin");
             logger.info("Done");
         } catch (IOException e) {
             logger.info("Failure : " + e);
