@@ -4,6 +4,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class InstallationSourceSpec extends Specification {
+    static {
+        //Need to do this here since we read the value statically
+        System.setProperty("os.name", "Linux")
+    }
 
     def "should construct valid url for version"() {
         given:
@@ -12,6 +16,16 @@ class InstallationSourceSpec extends Specification {
             final resolvedUrl = installationSource.resolveDownloadUrl()
         then:
             resolvedUrl != null
+    }
+
+    def "should construct valid url for platform specific version"() {
+        given:
+            final installationSource = new InstallFromVersion("7.6.2")
+        when:
+            final resolvedUrl = installationSource.resolveDownloadUrl()
+        then:
+            resolvedUrl != null
+            resolvedUrl.toExternalForm() == "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.6.2-linux-x86_64.tar.gz"
     }
 
     def "should extract properly version from normal url"() {

@@ -7,9 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.allegro.tech.embeddedelasticsearch.InstallationDescription.Plugin;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Path;
@@ -17,6 +21,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FileUtils.forceMkdir;
@@ -72,8 +77,18 @@ class ElasticSearchInstaller {
     }
 
     private void unzip(Path downloadedTo, File destination) throws IOException {
-        Archiver archiver = ArchiverFactory.createArchiver("zip");
-        archiver.extract(downloadedTo.toFile(), destination);
+        Archiver archiver = ArchiverFactory.createArchiver(downloadedTo.endsWith("zip") ? "zip" : "tar");
+        try (InputStream is = toStream(downloadedTo)) {
+            archiver.extract(is, destination);
+        }
+    }
+
+    private InputStream toStream(Path downloadedTo) throws IOException {
+        InputStream result = new FileInputStream(downloadedTo.toFile());
+        if (downloadedTo.endsWith(".gz")) {
+            result = new GZIPInputStream(result);
+        }
+        return new BufferedInputStream(result);
     }
 
     private void configureElastic() throws IOException {
