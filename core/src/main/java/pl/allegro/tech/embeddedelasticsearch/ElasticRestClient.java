@@ -193,7 +193,7 @@ class ElasticRestClient {
                 return false;
             }
             String esV = jsonNode.get("version").get("number").asText();
-            return Integer.parseInt(esV.substring(0,1)) >= 7; //if version is 7 and above
+            return Integer.parseInt(esV.substring(0, esV.indexOf('.'))) >= 7; //if version is 7 and above
         });
     }
 

@@ -8,7 +8,7 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     EmbeddedElastic.Builder baseEmbeddedElastic() {
         return EmbeddedElastic.builder()
-                .withElasticVersion("6.3.0")
+                .withElasticVersion("7.3.2")
                 .withEsJavaOpts("-Xms128m -Xmx512m")
                 .withSetting(PopularProperties.HTTP_PORT, HTTP_PORT_VALUE)
                 .withStartTimeout(2, MINUTES)
@@ -16,7 +16,7 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     @Override
     String pluginByUrlUrl() {
-        return "https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-stempel/analysis-stempel-6.3.0.zip"
+        return "https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-stempel/analysis-stempel-7.3.2.zip"
     }
 
     @Override
