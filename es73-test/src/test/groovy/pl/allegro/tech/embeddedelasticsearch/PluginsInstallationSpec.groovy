@@ -26,6 +26,6 @@ class PluginsInstallationSpec extends PluginsInstallationBaseSpec {
 
     @Override
     String pluginByName() {
-        return "discovery-file"
+        return "mapper-size"
     }
 }
