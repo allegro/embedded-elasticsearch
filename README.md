@@ -1,3 +1,5 @@
+# This project is no longer maintained. We recommend using Testcontainers instead: https://www.testcontainers.org/modules/elasticsearch/
+
 # embedded-elasticsearch
 
 [![Build Status](https://travis-ci.org/allegro/embedded-elasticsearch.svg?branch=master)](https://travis-ci.org/allegro/embedded-elasticsearch)
