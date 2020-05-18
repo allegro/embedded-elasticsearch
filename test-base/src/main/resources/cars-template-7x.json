@@ -1,0 +1,18 @@
+{
+  "index_patterns": [
+    "car*"
+  ],
+  "mappings": {
+    "properties": {
+      "manufacturer": {
+        "type": "keyword"
+      },
+      "model": {
+        "type": "keyword"
+      },
+      "description": {
+        "type": "text"
+      }
+    }
+  }
+}

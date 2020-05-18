@@ -164,10 +164,13 @@ class ElasticRestClient {
             joiner.add("\"_id\": \"" + id + "\"");
         }
 
-        if(routing != null) {
-            joiner.add("\"_routing\": \"" + routing + "\"");
+        if (routing != null) {
+            if (newESVersion()) {
+                joiner.add("\"routing\": \"" + routing + "\"");
+            } else {
+                joiner.add("\"_routing\": \"" + routing + "\"");
+            }
         }
-
         return "{ \"index\": {" + joiner.toString() + "} }";
     }
 
@@ -178,6 +181,20 @@ class ElasticRestClient {
         } finally {
             request.releaseConnection();
         }
+    }
+
+    private boolean newESVersion() {
+        HttpGet request = new HttpGet(url("/"));
+        return httpClient.execute(request, response -> {
+            JsonNode jsonNode;
+            try {
+                jsonNode = OBJECT_MAPPER.readTree(readBodySafely(response));
+            } catch (IOException e) {
+                return false;
+            }
+            String esV = jsonNode.get("version").get("number").asText();
+            return Integer.parseInt(esV.substring(0, esV.indexOf('.'))) >= 7; //if version is 7 and above
+        });
     }
 
     private void performBulkRequest(String requestUrl, String bulkRequestBody) {

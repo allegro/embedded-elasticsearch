@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "author": {
+      "type": "text",
+      "index": "false"
+    },
+    "title": {
+      "type": "text",
+      "index": "false"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

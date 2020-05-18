@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/allegro/embedded-elasticsearch.svg?branch=master)](https://travis-ci.org/allegro/embedded-elasticsearch)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/pl.allegro.tech/embedded-elasticsearch/badge.svg)](http://central.maven.org/maven2/pl/allegro/tech/embedded-elasticsearch)
 
-Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x, 5.x and 6.x versions of Elasticsearch.
+Small utility for creating integration tests that use Elasticsearch. Instead of using `Node` it downloads Elasticsearch in specified version and starts it in a separate process. It also allows you to install required plugins which is not possible when using `NodeBuilder`. Utility was tested with 1.x, 2.x, 5.x, 6.x and 7.x versions of Elasticsearch.
 
 ## Introduction
 
@@ -65,6 +65,7 @@ Available `IndexSettings.Builder` options
 | Method | Description |
 | ------------- | ------------- |
 | `withType(String type, String mapping)` | specify type and it's mappings |
+| `withMapping(String mapping)` | starting from Elasticseatch 7, there is no more types, so when using an ES version 7.0 and above this method should be used insted of withType method |
 | `withSettings(String settings)` | specify index settings |
 
 
