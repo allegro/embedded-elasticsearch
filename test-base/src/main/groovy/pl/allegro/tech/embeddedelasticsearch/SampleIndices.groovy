@@ -9,10 +9,12 @@ class SampleIndices {
     static final BOOK_ALIAS_1 = "book_alias_1"
     static final BOOK_ALIAS_2 = "book_alias_2"
     static final CARS_INDEX_NAME = "cars"
+    static final CARS_MAPPING_NAME = "car-mapping.json"
     static final CAR_INDEX_TYPE = "car"
     static final CARS_TEMPLATE_NAME = "cars_template"
     static final CARS_TEMPLATE = resourceToString("cars-template.json")
     static final CARS_TEMPLATE_6x = getSystemResourceAsStream("cars-template-6x.json")
+    static final CARS_TEMPLATE_7x = getSystemResourceAsStream("cars-template-7x.json")
     static final BOOKS_INDEX_NAME = "books"
     static final PAPER_BOOK_INDEX_TYPE = "paper_book"
     static final AUDIO_BOOK_INDEX_TYPE = "audio_book"
@@ -25,6 +27,12 @@ class SampleIndices {
 
     static final BOOKS_INDEX = IndexSettings.builder()
             .withType(PAPER_BOOK_INDEX_TYPE, getSystemResourceAsStream("paper-book-mapping.json"))
+            .withSettings(getSystemResourceAsStream("elastic-settings.json"))
+            .withAliases(getSystemResourceAsStream("elastic-aliases.json"))
+            .build()
+
+    static final CARS_INDEX_7x = IndexSettings.builder()
+            .withMapping(getSystemResourceAsStream("car-mapping.json"))
             .withSettings(getSystemResourceAsStream("elastic-settings.json"))
             .withAliases(getSystemResourceAsStream("elastic-aliases.json"))
             .build()

@@ -1,0 +1,15 @@
+{
+  "number_of_shards" : 5,
+  "analysis": {
+    "analyzer": {
+      "custom-analyzer": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": [
+          "asciifolding",
+          "lowercase"
+        ]
+      }
+    }
+  }
+}

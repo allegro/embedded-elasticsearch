@@ -1,6 +1,7 @@
 ---
 language: java
-script: 
+dist: trusty
+script:
   - ./gradlew clean check --info
 jdk:
   - oraclejdk8
