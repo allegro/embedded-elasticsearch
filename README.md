@@ -37,6 +37,34 @@ embeddedElastic.start()
 
 And that's all, you can connect to your embedded-elastic instance on specified port and use it in your tests.
 
+## Junit Rule
+
+You can also use `@Rule` or `@ClassRule` to start embedded elastic.
+Using this feature you do not have to worry about starting and stopping elastic in your tests.
+simple setup:
+
+```java
+@ClassRule
+public static EmbeddedElasticRule embeddedElasticRule = new EmbeddedElasticRule("index_name", 9200);
+```
+
+custom Setup:
+
+```java
+@ClassRule
+public static EmbeddedElasticRule embeddedElasticRule = new EmbeddedElasticRule(EmbeddedElastic.builder()
+        .withElasticVersion("6.8.0")
+        .withSetting(PopularProperties.HTTP_PORT, 9200)
+        .withSetting(PopularProperties.CLUSTER_NAME, "cluster_test")
+        .withSetting("cluster.routing.allocation.disk.threshold_enabled", false)
+        .withStartTimeout(2, TimeUnit.MINUTES)
+        .withIndex("test_builder")
+        .withDownloadDirectory(new File("./"))
+        .withInstallationDirectory(new File("./"))
+        .build());
+```
+
+
 ## Available builder options
 
 | Method | Description |
@@ -84,6 +112,7 @@ Availabe `JavaHomeOption` options
 | Method | Description |
 | ------------- | ------------- |
 | `start()` | downloads Elasticsearch and specified plugins, setups everything and finally starts your Elasticsearch instance |
+| `isStarted()` | Checks if you have an instance of Elasticsearch available |
 | `stop()` | stops your Elasticsearch instance and removes all data |
 | `index` | index your document, comes with variants that take only document, or document and it's id |
 | `deleteIndex(String indexName)`, `deleteIndices()`  | deletes index with name specified during EmbeddedElastic creation |
