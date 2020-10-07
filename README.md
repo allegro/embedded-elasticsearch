@@ -139,7 +139,7 @@ If you build your project on Travis, you may have problems with OOM errors when 
             .start()
 ```
 
-## Running more then one Elasticsearch instance
+## Running more than one Elasticsearch instance
 
 There are cases where you might want to run more than one Elasticsearch instance e.g.:
 - running tests of one project in parallel (e.g. using _gradle --parallel_ or _mvn -T1C_)
