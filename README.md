@@ -87,6 +87,7 @@ Availabe `JavaHomeOption` options
 | `stop()` | stops your Elasticsearch instance and removes all data |
 | `index` | index your document, comes with variants that take only document, or document and it's id |
 | `deleteIndex(String indexName)`, `deleteIndices()`  | deletes index with name specified during EmbeddedElastic creation |
+| `deleteAllDocuments(String indexName)`, `deleteAllDocuments(String routing, String indexName)`  | deletes all documents with name specified index name or specified routing and index name during EmbeddedElastic creation |
 | `createIndex(String indexName)`, `createIndices()` | creates index with name specified during EmbeddedElastic creation; note that this index is created during EmbeddedElastic startup, you will need this method only if you deleted your index using `deleteIndex` method |  
 | `recreateIndex(String indexName)`, `recreateIndices()` | combination of `deleteIndex` and `createIndex` |
 | `refreshIndices()` | refresh index; useful when you make changes in different thread, and want to check results instantly in tests |

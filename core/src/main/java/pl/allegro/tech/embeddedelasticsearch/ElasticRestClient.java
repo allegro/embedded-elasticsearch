@@ -138,10 +138,10 @@ class ElasticRestClient {
     void bulkIndex(Collection<IndexRequest> indexRequests) {
         String bulkRequestBody = indexRequests.stream()
                 .flatMap(request ->
-                    Stream.of(
-                            indexMetadataJson(request.getIndexName(), request.getIndexType(), request.getId(), request.getRouting()),
-                            request.getJson()
-                    )
+                        Stream.of(
+                                indexMetadataJson(request.getIndexName(), request.getIndexType(), request.getId(), request.getRouting()),
+                                request.getJson()
+                        )
                 )
                 .map((jsonNodes) -> jsonNodes.replace('\n', ' ').replace('\r', ' '))
                 .collect(joining("\n")) + "\n";
@@ -219,6 +219,16 @@ class ElasticRestClient {
                     .flatMap((index) -> searchForDocuments(Optional.of(index), Optional.ofNullable(routing)))
                     .collect(toList());
         }
+    }
+
+    void deleteAllDocuments(String... indices) {
+        List<String> documents = fetchAllDocuments(indices);
+        documents.forEach(this::deleteIndex);
+    }
+
+    void deleteAllDocuments(String routing, String... indices) {
+        List<String> documents = fetchAllDocuments(routing, indices);
+        documents.forEach(this::deleteIndex);
     }
 
     private Stream<String> searchForDocuments(Optional<String> indexMaybe) {
